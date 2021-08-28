@@ -1,46 +1,30 @@
-# Getting Started with Create React App
+# CoinSwap
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Getting started
 
-## Available Scripts
+1. Install dependencies
+   ```bash
+   yarn
+   ```
 
-In the project directory, you can run:
+2. Create file *.env.development* at project root and add your Infura API ID as REACT_APP_INFURAID variable. If you don't have an Infura account, [Sign up here](https://infura.io). You should use a token for the Kovan testnet.
 
-### `yarn start`
+3. Run
+   ```bash
+   yarn start
+   ```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Key Components
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+This app is a React app built to interact with Ethereum. It uses the Infura API to query and transact on the Ethereum blockchain.
 
-### `yarn test`
+The core components of the app are:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+* Web3, an api used to securely connect wallets to web apps. This app also uses web3modal to facilitate multi-wallet support.
+* The contract ABI in the /data folder. The ABI describes the contract interface so the web3 api can properly build calls and transactions.
+* Redux which is used to manage global state. Wallet connection, price API, swap data, and all user inputs for the portfolio are managed this way.
+  * You can find the logic for the queries in /actions.
 
-### `yarn build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Notes
+* Be sure to set your wallet to Kovan network before interacting with this demo.
+* The token list in /data is not production-usable. Some of the addresses do not match mainnet. Do not use this list if you are transacting on mainnet.
