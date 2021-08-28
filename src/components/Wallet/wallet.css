@@ -1,0 +1,144 @@
+.wallet {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+}
+
+.wallet-content {
+    border: 1px solid lightgrey;
+    border-radius: 8px;
+    align-self: center;
+    padding: 12px;
+    width: 140px;
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+}
+
+.wallet-connect {
+    cursor: pointer;
+}
+
+.wallet-connect:hover {
+    color: darkgrey;
+}
+
+.wallet-connect-indicator {
+    height: 14px;
+    width: 14px;
+    border-radius: 45px;
+    align-self: center;
+    background: red;
+}
+
+.indicator-on {
+    background: green;
+}
+
+.floating-wallet-ct {
+    display: flex;
+    width: 260px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    margin: 0;
+    flex-direction: column;
+    box-shadow: 0 0 8px 2px rgba(211, 211, 211, 0.719);
+    z-index: 999;
+}
+
+.floating-wallet-drop {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    position: absolute;
+    left: 0;
+    top: 0;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    color: black;
+    cursor: pointer;
+}
+
+.floating-wallet {
+    background: whitesmoke;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 8px;
+}
+
+.floating-wallet-top {
+    display: flex;
+    justify-content: space-between;
+    margin-left: 32px;
+    margin-right: 6px;
+    letter-spacing: 0.05em;
+    font-size: 14.5px;
+    color: black;
+    height: 48px;
+    align-items: center;
+}
+
+.floating-wallet-top:hover {
+    color: grey;
+}
+
+.floating-wallet-top a, span {
+    color: inherit;
+    margin-left: 16px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.floating-wallet-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 45px;
+}
+
+.floating-wallet-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    text-align: right;
+    font-size: 12px;
+    color: black;
+    align-items: center;
+    align-content: center;
+    margin: 4px 0;
+}
+
+.floating-wallet-link:hover {
+    color: silver;
+    cursor: pointer;
+}
+
+.floating-wallet-balance {
+    display: flex;
+    align-items: center;
+    height: 64px;
+}
+
+.floating-wallet-balance span {
+    font-size: 18px;
+}
+
+.floating-wallet-balance img {
+    width: 24px;
+    margin-left: 12px;
+}
+
+.floating-wallet-balance-usd {
+    height: 32px;
+    font-size: 14px;
+    color: steelblue;
+    text-align: right;
+    margin-right: 12px;
+}

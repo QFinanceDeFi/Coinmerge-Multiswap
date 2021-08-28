@@ -1,0 +1,84 @@
+.controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 12px 0;
+}
+.control-buttons {
+    display: flex;
+    justify-content: flex-end;
+    width: 80px;
+}
+
+.control-buttons button {
+    display: flex;
+    height: 24px;
+    width: 24px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 45px;
+    outline: none;
+    border: none;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.control-button-remove {
+    background: lightgrey;
+}
+
+.control-button-add {
+    background: dodgerblue;
+    margin-left: 12px;
+}
+
+.control-button-add:active {
+    background: rgb(19, 135, 252);
+}
+
+.control-button-remove:active {
+    background: rgb(192, 192, 192);
+}
+
+.submit-buttons {
+    display: flex;
+    width: 100%;
+}
+
+.submit-button {
+    display: flex;
+    justify-content: center;
+    flex-grow: 1;
+    height: 36px;
+    align-items: center;
+    background: none;
+    outline: none;
+    border: none;
+    background: dodgerblue;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.submit-button:hover {
+    box-shadow: 0 0 2px 1px rgba(50,50,50,0.3);
+}
+
+.submit-button:disabled {
+    background: grey;
+    cursor: not-allowed;
+}
+
+.submit-button:active {
+    background: rgb(19, 135, 252);
+}
+
+.control-buttons-container {
+    display: flex;
+    justify-content: space-between;
+    width: calc(100% - 24px);
+    align-items: center;
+    margin: 36px 0 0 0;
+}

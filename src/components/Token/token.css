@@ -1,0 +1,118 @@
+.token {
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 100%;
+    box-sizing: content-box;
+    max-width: 480px;
+    border: 1px solid lightgrey;
+    margin: 12px 0;
+}
+
+.token-content {
+    width: calc(100% - 24px);
+    padding: 12px;
+    flex-grow: 1;
+    align-items: center;
+    align-self: center;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.token-details {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.token-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 48px;
+    width: 100px;
+    padding: 8px;
+    border-radius: 8px;
+    text-align: center;
+    background: whitesmoke;
+}
+
+.token-icon:active {
+    background:rgb(150, 150, 150);
+}
+
+.token-icon-empty {
+    background: rgb(212, 212, 212);
+}
+
+.token-icon span {
+    font-size: 14px;
+    font-weight: 400;
+    text-align: center;
+}
+
+.token-icon img {
+    margin: 0 8px 0px 0;
+    border-radius: 45px;
+}
+
+.token-icon:hover {
+    box-shadow: 0 0 2px 1px lightgrey;
+    cursor: pointer;
+}
+
+.token-amount {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    min-height: 48px;
+}
+
+.token-amount span {
+    font-size: 14px;
+    color: grey;
+    margin: 2px;
+}
+
+.token-input {
+    outline: none;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 20px;
+    text-align: right;
+    font-weight: 600;
+}
+
+.token-warning {
+    margin: 8px 0;
+}
+
+.token-warning span {
+    font-size: 12px;
+}
+
+.token-slider {
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    padding: 0 24px;
+}
+
+.slider-button {
+    outline: none;
+    background: none;
+    margin: 8px 4px 0px;
+    border: none;
+    width: 50px;
+    padding: 2px 0;
+    background: lightgrey;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.slider-button:hover {
+    box-shadow: 0 0 2px 1px rgba(0,0,0,0.1);
+}
