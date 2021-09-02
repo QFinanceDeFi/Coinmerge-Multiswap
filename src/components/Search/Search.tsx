@@ -39,7 +39,7 @@ const Search: React.FC<ISearchProps> = ({ update }) => {
                             <div className="token-list-item-brand">
                                 {item.logo && <img src={item.logo} width="24px" />}
                                 <div className="token-list-item-name">
-                                    <span>{`${item.name} (${item.symbol.toUpperCase()})`}</span>
+                                    <span>{`${item.name} (${item.symbol?.toUpperCase()})`}</span>
                                 </div>
                             </div>
                             <div className="token-list-item-link">

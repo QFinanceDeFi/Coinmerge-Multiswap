@@ -2,20 +2,24 @@
     display: flex;
     justify-content: space-evenly;
     width: 100%;
-    max-width: 480px;
     border-radius: 8px;
     overflow: hidden;
-    background: rgb(240,240,240);
-    box-shadow: 0 0 12px 0px rgb(240,240,240);
+    background: #0f002e;
+    box-shadow: 0 0 12px 0px #b5ceffab;
     box-sizing: border-box;
 }
 
 .nav-item {
-    color: black;
+    color: white;
     text-align: center;
     text-decoration: none;
     text-align: center;
     padding: 12px 0;
     flex-grow: 1;
     font-size: 14px;
+}
+
+.nav-item-active {
+    background: #ff8d01;
+    color: white;
 }

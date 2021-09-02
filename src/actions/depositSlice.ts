@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { initWeb3, web3Modal } from "../init";
 import type { RootState } from "../store";
 
 interface IDepositState {
@@ -9,11 +8,12 @@ interface IDepositState {
     balance: string;
     priceUsd: string;
     logo: string;
+    decimals: number | string;
     depositAmount: string;
 }
 
 const initialState: IDepositState[] = [{
-    name: '', symbol: '', address: '', balance: '0', priceUsd: '0', logo: '', depositAmount: '0.0'
+    name: '', symbol: '', address: '', balance: '0', priceUsd: '0', logo: '', decimals: 0, depositAmount: '0.0'
 }]
 
 export const getTokenData: any = createAsyncThunk('deposit/info',
@@ -38,6 +38,14 @@ export const depositSlice = createSlice({
     name: 'deposit',
     initialState,
     reducers: {
+        addDepositItem: (state: any) => {
+            state.push({
+                name: '', symbol: '', address: '', balance: '0', priceUsd: '0', logo: '', decimals: 0, depositAmount: '0.0'
+            })
+        },
+        removeDepositItem: (state: any, action: any) => {
+            state.splice(action.payload, 1);
+        },
         setDepositItem: (state: IDepositState[], action: PayloadAction<any>) => {
             state[action.payload.index].name = action.payload.name;
             state[action.payload.index].symbol = action.payload.symbol;
@@ -55,7 +63,7 @@ export const depositSlice = createSlice({
     }
 });
 
-export const { setDepositItem, updateDepositAmount } = depositSlice.actions;
+export const { addDepositItem, removeDepositItem, setDepositItem, updateDepositAmount } = depositSlice.actions;
 
 export const depositSelect = (state: RootState) => state.deposit;
 

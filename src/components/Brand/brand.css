@@ -1,0 +1,8 @@
+.floating-brand {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+}

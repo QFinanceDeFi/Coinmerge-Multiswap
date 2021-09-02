@@ -1,5 +1,5 @@
 import React from "react";
-import { depositAmount } from "../../actions/swapSlice";
+import { depositAmount, depositToken } from "../../actions/swapSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
 import "./deposit.css";
 
@@ -16,6 +16,7 @@ const Deposit: React.FC = () => {
 
     React.useEffect(() => {
         dispatch(depositAmount(input));
+        dispatch(depositToken('ETH'));
     }, [input])
 
     return (
@@ -31,11 +32,11 @@ const Deposit: React.FC = () => {
                 </div>
                 <div className="deposit-amount">
                     <span onClick={() => setInput(balance)} style={{cursor: 'pointer'}}>
-                        Send Max (~{Number(balance).toFixed(8)} ETH)
+                        Max (~{Number(balance).toFixed(5)} ETH)
                     </span>
                     <input className="deposit-input" type="number" value={input} style={{fontWeight: input === '' ? 300 : 600}}
                         onChange={(e: any) => setInput(e.target.value)} placeholder='Enter amount...' autoFocus />
-                    <span>Value: ~${(Number(input) * Number(priceUsd)).toFixed(2).toLocaleString()}</span>
+                    <span>{`Value: ~${(Number(input) * Number(priceUsd)).toFixed(2).toLocaleString()} USD`}</span>
                 </div>   
             </div>
         </div>

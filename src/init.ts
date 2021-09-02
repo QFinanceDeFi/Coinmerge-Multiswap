@@ -1,9 +1,9 @@
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import Web3 from "web3";
 import Web3Modal from "web3modal";
-const multiswap = require('./data/MultiswapCM.json');
+const multiswap = require('./data/Multiswap.json');
 
-export const SWAP_ADDRESS = '0xb7a38b84a5f5D33B5cD1F9aFF04e9276FB8B497A';
+export const SWAP_ADDRESS = '0x24B211deC8b68c6A348Dd81B758DAC6899deF2b8';
 
 export const providerOptions: any =  {
     walletconnect: {
@@ -15,7 +15,7 @@ export const providerOptions: any =  {
 }
 
 export const web3Modal: Web3Modal = new Web3Modal({
-    network: "mainnet",
+    network: "kovan",
     cacheProvider: true,
     theme: 'dark',
     providerOptions
@@ -26,21 +26,20 @@ export const swapContract = (web3: Web3) => {
 }
 
 export function initWeb3(provider?: any): Web3 {
-    if (!provider) {
-      provider = web3Modal.connect().catch((e: any) => console.log(e));
-    }
-    
-    const web3: any = new Web3(provider);
-  
-    web3.eth.extend({
-      methods: [
-        {
-          name: "chainId",
-          call: "eth_chainId",
-          outputFormatter: web3.utils.hexToNumber
-        }
-      ]
-    });
-  
-    return web3;
+  if (!provider) {
+    provider = window.web3?.currentProvider;
   }
+  const web3: any = new Web3(provider);
+
+  web3.eth.extend({
+    methods: [
+      {
+        name: "chainId",
+        call: "eth_chainId",
+        outputFormatter: web3.utils.hexToNumber
+      }
+    ]
+  });
+
+  return web3;
+}

@@ -9,6 +9,7 @@ interface ITokenState {
     priceUsd: string;
     balance: string;
     logo: string;
+    slippage: number;
     status?: 'loading' | 'standby' | 'success' | 'error';
 }
 
@@ -20,6 +21,7 @@ const initialState: ITokenState[] = [{
     priceUsd: '0',
     balance: '0',
     logo: '',
+    slippage: 0,
     status: 'standby'
 }];
 
@@ -28,10 +30,10 @@ export const getTokenInfo: any = createAsyncThunk('tokens/info',
         if (data.token === '') return { index: data.index, priceUsd: '0', logo: '' };
         const url: string = `https://api.coingecko.com/api/v3/coins/ethereum/contract/${data.token}`;
         const { priceUsd, logo } = await fetch(url)
-            .then((res: any) => res.json()).then((data: any) => {
+            .then((res: any) => res.json()).then((json: any) => {
                 return {
-                    priceUsd: data.market_data.current_price.usd,
-                    logo: data.image.small
+                    priceUsd: json.market_data.current_price.usd,
+                    logo: json.image.small
                 }
         });
         
@@ -43,7 +45,7 @@ export const tokenSlice = createSlice({
     initialState,
     reducers: {
         addItem: state => {
-            state.push({name: '', symbol: '', address: '', percent: 0, priceUsd: '0', balance: '0', logo: ''});
+            state.push({name: '', symbol: '', address: '', percent: 0, priceUsd: '0', balance: '0', slippage: 0, logo: ''});
         },
         removeItem: (state: ITokenState[], action: PayloadAction<number>) => {
             state.splice(action.payload, 1);
@@ -55,9 +57,13 @@ export const tokenSlice = createSlice({
                 address: action.payload.address,
                 percent: action.payload.percent,
                 balance: '0',
+                slippage: action.payload.slippage,
                 priceUsd: action.payload.priceUsd,
                 logo: action.payload.logo
             });
+        },
+        updateSlippage: (state: ITokenState[], action: PayloadAction<any>) => {
+            state[action.payload.index].slippage = action.payload.slippage;
         }
     },
     extraReducers: {
@@ -68,7 +74,7 @@ export const tokenSlice = createSlice({
     }
 });
 
-export const { addItem, removeItem, updateItem } = tokenSlice.actions;
+export const { addItem, removeItem, updateItem, updateSlippage } = tokenSlice.actions;
 
 export const selectTokens = (state: RootState) => state.tokens;
 

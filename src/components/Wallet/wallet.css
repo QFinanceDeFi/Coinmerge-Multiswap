@@ -5,6 +5,7 @@
     height: 64px;
     display: flex;
     align-items: center;
+    background: #0f002e;
 }
 
 .wallet-content {
@@ -40,7 +41,7 @@
 
 .floating-wallet-ct {
     display: flex;
-    width: 260px;
+    width: 230px;
     border-radius: 8px;
     overflow: hidden;
     position: fixed;
@@ -48,7 +49,7 @@
     right: 24px;
     margin: 0;
     flex-direction: column;
-    box-shadow: 0 0 8px 2px rgba(211, 211, 211, 0.719);
+    box-shadow: 0 0 8px 2px #b5ceff3d;
     z-index: 999;
 }
 
@@ -62,12 +63,13 @@
     align-items: center;
     text-align: center;
     justify-content: center;
-    color: black;
+    color: #b5ceff;
     cursor: pointer;
 }
 
 .floating-wallet {
-    background: whitesmoke;
+    background: #0f002e;
+    color: whitesmoke;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -76,12 +78,11 @@
 
 .floating-wallet-top {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     margin-left: 32px;
     margin-right: 6px;
     letter-spacing: 0.05em;
     font-size: 14.5px;
-    color: black;
     height: 48px;
     align-items: center;
 }
@@ -92,7 +93,7 @@
 
 .floating-wallet-top a, span {
     color: inherit;
-    margin-left: 16px;
+
     text-decoration: none;
     cursor: pointer;
 }
@@ -101,6 +102,7 @@
     width: 12px;
     height: 12px;
     border-radius: 45px;
+    margin-left: 18px;
 }
 
 .floating-wallet-row {
@@ -109,7 +111,6 @@
     width: 100%;
     text-align: right;
     font-size: 12px;
-    color: black;
     align-items: center;
     align-content: center;
     margin: 4px 0;
@@ -138,7 +139,40 @@
 .floating-wallet-balance-usd {
     height: 32px;
     font-size: 14px;
-    color: steelblue;
+    color: #b5ceff;
     text-align: right;
     margin-right: 12px;
+}
+
+.disconnect-modal {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.disconnect-modal-action {
+    width: 45%;
+    padding: 12px 0;
+    background: #b5ceff73;
+    border: none;
+    outline: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+}
+
+.disconnect-modal-action:hover {
+    color: #ff8d01;
+    box-shadow: 0 0 4px 1px #b5ceff73;
+}
+
+.disconnect-modal-action:active {
+    background: #b5ceff3b;
 }

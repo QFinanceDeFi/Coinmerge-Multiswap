@@ -1,7 +1,9 @@
 import React from "react";
 import { changeAccount, makeConnection, reset } from "./actions/connectSlice";
 import { getPrice } from "./actions/priceSlice";
+import { getBalances, setWallet } from "./actions/walletSlice";
 import './App.css';
+import Brand from "./components/Brand/Brand";
 import Navigation from "./components/Navigation/Navigation";
 import Wallet from "./components/Wallet/Wallet";
 import { useAppDispatch, useAppSelector } from './hooks/hooks';
@@ -15,12 +17,13 @@ const App: React.FC = () => {
   const [selected, setSelected] = React.useState<number>(1);
   const dispatch = useAppDispatch();
   const width = useWindowWidth(50);
-  const {connected, address, balance, priceUsd} = useAppSelector(state => {
+  const {connected, address, balance, priceUsd, wallet} = useAppSelector(state => {
     return {
       connected: state.connect.connected,
       address: state.connect.address,
       balance: state.connect.balance,
-      priceUsd: state.price.priceUsd
+      priceUsd: state.price.priceUsd,
+      wallet: state.wallet
     }
   });
 
@@ -50,6 +53,10 @@ const App: React.FC = () => {
     const chainId = await web3.eth.chainId();
 
     const balance = web3.utils.fromWei(await web3.eth.getBalance(address), 'ether');
+    
+    const walletInfo = await dispatch(getBalances(address));
+
+    dispatch(setWallet(walletInfo.payload));
 
     dispatch(makeConnection({
       connected: true,
@@ -80,6 +87,7 @@ const App: React.FC = () => {
 
   return (
     <>
+    <Brand />
     <Wallet connect={onConnect} />
     <div className="App" style={{marginTop: width > 1200 ? '0px' : '80px'}}>
       <Navigation selected={selected} update={(val: number) => setSelected(val)} />

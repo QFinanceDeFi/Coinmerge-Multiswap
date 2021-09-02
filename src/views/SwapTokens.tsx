@@ -6,11 +6,12 @@ import Token from "../components/Token/Token";
 import { useAppDispatch, useAppSelector } from "../hooks/hooks";
 
 const SwapTokens: React.FC = () => {
-    const { tokens, priceUsd, swap } = useAppSelector(state => {
+    const { tokens, priceUsd, swap, wallet } = useAppSelector(state => {
         return {
             tokens: state.tokens,
             priceUsd: state.price.priceUsd,
-            swap: state.swap
+            swap: state.swap,
+            wallet: state.wallet.tokens
         }
     });
     const dispatch = useAppDispatch();
@@ -24,7 +25,8 @@ const SwapTokens: React.FC = () => {
     }
     return (
         <>
-            <DepositToken />
+            <h1 className="eth-deposit_h1">Swap Token for Tokens</h1>
+            <DepositToken index={0} multi={false} />
             <Controls remove={remove} add={add} length={tokens.length} tokenBase={true} />
             {tokens.map((item: any, index: number) => (
                 <Token key={index} index={index} />

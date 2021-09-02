@@ -1,22 +1,29 @@
 import React from "react";
 import { getTokenData, setDepositItem, updateDepositAmount } from "../../actions/depositSlice";
+import { depositAmount, depositToken } from "../../actions/swapSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
 import Modal from "../Modal/Modal";
 import Search from "../Search/Search";
 import "./deposit.css";
 
-const DepositToken: React.FC = () => {
+interface IDepositProps {
+    index: number;
+    multi: boolean;
+}
+
+const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
     const [input, setInput] = React.useState<string>('');
     const [modal, setModal] = React.useState<boolean>(false);
-    const { name, symbol, address, balance, priceUsd, logo, depositAmount, percent } = useAppSelector(state => {
+    const { name, symbol, address, tokenInfo, priceUsd, logo, wallet, amount, percent } = useAppSelector(state => {
         return {
-            name: state.deposit[0].name,
-            symbol: state.deposit[0].symbol,
-            address: state.deposit[0].balance,
-            priceUsd: state.deposit[0].priceUsd,
-            balance: state.deposit[0].balance,
-            logo: state.deposit[0].logo,
-            depositAmount: state.deposit[0].depositAmount,
+            name: state.deposit[index].name,
+            symbol: state.deposit[index].symbol,
+            address: state.deposit[index].address,
+            priceUsd: state.deposit[index].priceUsd,
+            tokenInfo: state.wallet.tokens.find(t => t.tokenInfo.address === state.deposit[index].address),
+            wallet: state.wallet.tokens,
+            logo: state.deposit[index].logo,
+            amount: multi ? state.deposit[index].balance : state.swap.depositAmount,
             percent: state.tokens.reduce((acc: any, curr: any) => acc + curr.percent, 0)
         }
     });
@@ -24,34 +31,43 @@ const DepositToken: React.FC = () => {
     const dispatch = useAppDispatch();
 
     React.useEffect(() => {
-        dispatch(updateDepositAmount({input, index: 0}));
+        dispatch(updateDepositAmount({depositAmount: input, index}))
     }, [input])
 
     function update(newName: string, newSymbol: string, newAddress: string): void {
         setModal(false);
-        if (newAddress !== '') dispatch(getTokenData({token: newAddress, index: 0}));
+        if (newAddress !== '') {
+            dispatch(getTokenData({token: newAddress, index}));
+            dispatch(depositToken(newAddress));
+        }
         dispatch(setDepositItem({
             name: newName,
             symbol: newSymbol,
             address: newAddress,
-            index: 0
+            index
         }))
+    }
+
+    function cleanString(str: string) {
+        const decimalPlaces = str.slice(-tokenInfo?.tokenInfo.decimals) ?? '0';
+        const inFront = str.slice(0, str.length - tokenInfo?.tokenInfo.decimals) ?? '0';
+        
+        return `${inFront}.${decimalPlaces}` ?? '0';
     }
 
     return (
         <>
-        <h1 className="eth-deposit_h1">Swap Token for Tokens</h1>
         <div className="eth-deposit">
             <div className="deposit-content">
                 <div className="deposit-details">
                     <div className={`token-deposit-icon ${symbol === '' && 'token-icon-empty'}`} onClick={() => setModal(true)}>
-                        <img src={logo} width="36px" style={{display: logo === '' ? 'none' : 'block'}} />
+                        <img src={logo} width="32px" style={{display: logo === '' ? 'none' : 'block'}} />
                         <span style={{fontSize: '14px'}}>{symbol === '' ? 'Select Token' : symbol.toUpperCase()}</span>
                     </div>
                 </div>
                 <div className="deposit-amount">
-                    <span onClick={() => setInput(balance)} style={{cursor: 'pointer'}}>
-                        {`Send Max (~${Number(balance).toFixed(4)} ${symbol.toUpperCase()})`}
+                    <span onClick={() => setInput(cleanString(tokenInfo?.rawBalance ?? '0'))} style={{cursor: 'pointer'}}>
+                        {`Send Max (~${Number(cleanString(tokenInfo?.rawBalance ?? '0')).toFixed(4)} ${symbol.toUpperCase()})`}
                     </span>
                     <input className="deposit-input" type="number" style={{fontWeight: input === '' ? 300 : 600}} placeholder='Enter amount...' autoFocus
                         value={input} onChange={(e: any) => setInput(e.target.value)} />

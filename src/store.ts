@@ -4,6 +4,7 @@ import connectReducer from "./actions/connectSlice";
 import priceReducer from "./actions/priceSlice";
 import swapReducer from "./actions/swapSlice";
 import depositReducer from "./actions/depositSlice";
+import walletReducer from "./actions/walletSlice";
 
 export const store = configureStore({
     reducer: {
@@ -11,7 +12,8 @@ export const store = configureStore({
         connect: connectReducer,
         price: priceReducer,
         swap: swapReducer,
-        deposit: depositReducer
+        deposit: depositReducer,
+        wallet: walletReducer
     }
 });
 

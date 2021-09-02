@@ -1,0 +1,19 @@
+.pending-tx {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    padding: 12px;
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    width: calc(220px - 24px);
+    box-shadow: 0 0 8px 2px #b5ceff88;
+    border-radius: 8px;
+}
+
+.pending-tx-status {
+    align-self: center;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}

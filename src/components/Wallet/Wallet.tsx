@@ -29,7 +29,7 @@ const Wallet: React.FC<IWalletProps> = ({ connect }) => {
                 <div className="floating-wallet-top">
                 {connected ?
                     <a href={`https://etherscan.io/address/${address}`} target="_blank noreferrer">
-                        {`${address.slice(0, 7)}...${address.slice(-6, -1)}`}
+                        {`${address.slice(0, 6)}...${address.slice(-5)}`}
                     </a>
                     :
                     <span onClick={() => connect()}>
@@ -60,11 +60,6 @@ const Wallet: React.FC<IWalletProps> = ({ connect }) => {
             {modal && <Modal open={modal} close={() => setModal(false)}>
                 <h3>Disconnect?</h3>
                 <div className="disconnect-modal">
-                    <span style={{textAlign: 'center', paddingTop: '32px', background: 'radial-gradient(black, rgba(0,0,0,0.1))'}}>Disconnect?</span>
-                    <div className="disconnect-modal-header">
-                    <video src="https://assets.website-files.com/60e47e3000ca7e8e53523322/60ea0c9e308a0adb0c75196c_Untitled design (3)-transcode.webm" style={{width: '128px'}}
-                        autoPlay loop className="App-brand-video" />
-                    </div>
                     <div className="modal-actions">
                         <button onClick={() => { setModal(false); }} className="disconnect-modal-action">
                             Cancel

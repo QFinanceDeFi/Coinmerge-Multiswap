@@ -7,7 +7,8 @@
 
 .search-input {
     outline: none;
-    border: 1px solid whitesmoke;
+    border: 1px solid #b5ceff9c;
+    color: #b5ceff;
     background: none;
     padding: 14px 8px;
     font-size: 14px;
@@ -17,7 +18,7 @@
 }
 
 .search-input:focus {
-    border: 1px solid dodgerblue;
+    border: 1px solid #b5ceff;
 }
 
 .token-list {
@@ -32,6 +33,7 @@
 .token-list-item {
     display: flex;
     justify-content: space-between;
+    flex-grow: 1;
     padding: 4px 0;
     align-items: center;
     border-radius: 8px;
@@ -43,7 +45,7 @@
 }
 
 .token-list-item:hover {
-    background: #7e7d7d;
+    background: #b5ceff3f;
     cursor: pointer;
 }
 
@@ -80,4 +82,8 @@
 .token-list-item-link a {
     text-decoration: none;
     color: inherit;
+}
+
+.token-list-item-link:hover {
+    color: #ff8d01;
 }

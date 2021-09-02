@@ -9,7 +9,7 @@ interface ITokenOutput {
 
 export const searchToken = async (symbol: string): Promise<ITokenOutput[] | Promise<void>> => {
     if (symbol.startsWith('0x')) {
-        const coin = await fetch(`https://api.ethplorer.io/getTokenInfo/${symbol}?apiKey=freekey`).then((res: any) => {
+        const coin = await fetch(`https://kovan-api.ethplorer.io/getTokenInfo/${symbol}?apiKey=freekey`).then((res: any) => {
             if (!res.ok) {
                 console.log(res.statusText);
                 return [];

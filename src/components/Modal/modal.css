@@ -1,6 +1,6 @@
 .modal {
     z-index: 999;
-    background: white;
+    background: #0f002e;
     position: fixed;
     height: 360px;
     overflow: hidden;
@@ -10,7 +10,7 @@
     transform: translate(-50%, -50%);
     min-width: 300px;
     border-radius: 14px;
-    box-shadow: 0 0 0 100vmax rgba(0,0,0,.6);
+    box-shadow: 0 0 0 100vmax #b5ceff27;
 }
 
 .modal-shell {
@@ -26,12 +26,16 @@
     position: fixed;
     top: 12px;
     right: 12px;
-    border-radius: 45px;
-    padding: 2px 4px;
+    border-radius: 8px;
+    height: 20px;
+    width: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .modal-close:hover {
-    box-shadow: 0 0 4px 0 grey;
+    box-shadow: 0 0 4px 2px #b5ceffa1;
     cursor: pointer;
 }
 
@@ -57,7 +61,7 @@
 }
 
 .modal-token-list-item:hover {
-    background: #7e7d7d;
+    background: #b5ceff83;
     cursor: pointer;
 }
 
@@ -85,7 +89,7 @@
 
 .modal-token-search-button {
     padding: 12px;
-    background: #eaeaea;
+    background: #b5ceffc2;
     outline: none;
     border: none;
     cursor: pointer;
