@@ -1,9 +1,14 @@
 import React from "react";
-import { getTokenInfo, updateItem, updateSlippage } from "../../actions/tokenSlice";
+import { getTokenInfo, updateDecimals, updateItem, updateSlippage } from "../../actions/tokenSlice";
+import { convertString } from "../../data/transactions";
+import { toBaseUnit } from "../../data/utils";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
+import useDecimals from "../../hooks/useDecimals";
+import { initWeb3 } from "../../init";
 import Modal from "../Modal/Modal";
 import Search from "../Search/Search";
 import Slider from "../Slider/Slider";
+import BN from "bn.js";
 import "./token.css";
 
 interface ITokenProps {
@@ -12,6 +17,7 @@ interface ITokenProps {
 
 const Token: React.FC<ITokenProps> = ({ index }) => {
     const [percent, setPercent] = React.useState<number>(0);
+    const [convertedValue, setConvertedValue] = React.useState<string>('0');
     const [slippageInput, setSlippageInput] = React.useState<number>(0);
     const { name, symbol, address, priceUsd, logo, tokenInfo, slippage, amount } = useAppSelector(state => {
         return {
@@ -25,6 +31,7 @@ const Token: React.FC<ITokenProps> = ({ index }) => {
             amount: state.swap.outputs[index]?.amount ?? '0'
         }
     });
+    const decimals = useDecimals(address);
     const [modal, setModal] = React.useState<boolean>(false);
     const [slippageModal, setSlippageModal] = React.useState<boolean>(false);
     const dispatch = useAppDispatch();
@@ -37,10 +44,15 @@ const Token: React.FC<ITokenProps> = ({ index }) => {
             percent,
             priceUsd,
             slippage,
+            decimals,
             logo,
             index
         }))
     }, [name, symbol, address, priceUsd, logo, tokenInfo, slippage, amount, index, percent, dispatch])
+
+    React.useEffect(() => {
+        dispatch(updateDecimals({address, decimals}));
+    }, [decimals, address])
 
     React.useEffect(() => {
         if (address !== '') dispatch(getTokenInfo({token: address, index}));
@@ -64,11 +76,11 @@ const Token: React.FC<ITokenProps> = ({ index }) => {
         }))
     }
 
-    function cleanString(str: string) {
-        console.log()
-        const decimalPlaces = str.slice(-tokenInfo?.tokenInfo.decimals) ?? '0';
-        const inFront = str.slice(0, str.length - tokenInfo?.tokenInfo.decimals) ?? '0';
-        
+    function cleanString(str: string, decimals: number) {
+        if (Number(str) === 0) return '0';
+        const decimalPlaces = str.slice(decimals) ?? '0';
+        const inFront = str.slice(0, str.length - decimals) ?? '0';
+
         return `${inFront}.${decimalPlaces}` ?? '0';
     }
 
@@ -83,9 +95,9 @@ const Token: React.FC<ITokenProps> = ({ index }) => {
                     </div>
                 </div>
                 <div className="token-amount">
-                    <span>{`Balance: ${Number(cleanString(tokenInfo?.rawBalance ?? '0')).toFixed(4) ?? 0} ${symbol && symbol.toUpperCase()}`}</span>
-                    <input className="token-input" type="number" value={cleanString(amount)} disabled />
-                    <span>{`~$${(Number(cleanString(amount)) * Number(priceUsd)).toFixed(2).toLocaleString()} USD`}</span>
+                    <span>{`Balance: ${Number(Number(cleanString((tokenInfo?.rawBalance ?? '0'), decimals)).toFixed(4)).toLocaleString()} ${symbol && symbol.toUpperCase()}`}</span>
+                    <input className="token-input" value={Number(cleanString(amount, decimals)).toLocaleString()} disabled />
+                    <span>{`~$${(Number(Number(cleanString(amount, decimals)) * Number(priceUsd)).toFixed(2)).toLocaleString()} USD`}</span>
                 </div>
             </div>
             <div className="token-slippage" onClick={() => setSlippageModal(true)}>

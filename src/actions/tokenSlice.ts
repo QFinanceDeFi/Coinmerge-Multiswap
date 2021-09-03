@@ -10,6 +10,7 @@ interface ITokenState {
     balance: string;
     logo: string;
     slippage: number;
+    decimals: number;
     status?: 'loading' | 'standby' | 'success' | 'error';
 }
 
@@ -21,6 +22,7 @@ const initialState: ITokenState[] = [{
     priceUsd: '0',
     balance: '0',
     logo: '',
+    decimals: 18,
     slippage: 0,
     status: 'standby'
 }];
@@ -45,7 +47,7 @@ export const tokenSlice = createSlice({
     initialState,
     reducers: {
         addItem: state => {
-            state.push({name: '', symbol: '', address: '', percent: 0, priceUsd: '0', balance: '0', slippage: 0, logo: ''});
+            state.push({name: '', symbol: '', address: '', percent: 0, priceUsd: '0', balance: '0', slippage: 0, decimals: 18, logo: ''});
         },
         removeItem: (state: ITokenState[], action: PayloadAction<number>) => {
             state.splice(action.payload, 1);
@@ -59,11 +61,18 @@ export const tokenSlice = createSlice({
                 balance: '0',
                 slippage: action.payload.slippage,
                 priceUsd: action.payload.priceUsd,
+                decimals: action.payload.decimals,
                 logo: action.payload.logo
             });
         },
         updateSlippage: (state: ITokenState[], action: PayloadAction<any>) => {
             state[action.payload.index].slippage = action.payload.slippage;
+        },
+        updateDecimals: (state: ITokenState[], action: PayloadAction<any>) => {
+            const index = state.findIndex(s => s.address === action.payload.address);
+            if (index > -1) {
+                state[index].decimals = action.payload.decimals
+            }
         }
     },
     extraReducers: {
@@ -74,7 +83,7 @@ export const tokenSlice = createSlice({
     }
 });
 
-export const { addItem, removeItem, updateItem, updateSlippage } = tokenSlice.actions;
+export const { addItem, removeItem, updateItem, updateSlippage, updateDecimals } = tokenSlice.actions;
 
 export const selectTokens = (state: RootState) => state.tokens;
 

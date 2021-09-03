@@ -86,6 +86,7 @@
     text-align: right;
     font-weight: 500;
     padding: 12px;
+    background: rgba(245, 245, 245, 0.288);
     color: rgba(245, 245, 245, 0.692);
 }
 

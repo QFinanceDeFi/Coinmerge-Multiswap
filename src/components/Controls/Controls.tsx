@@ -139,11 +139,11 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
         return tokenBase ? Number(wallet.find((tok: any) => tok.tokenInfo.address === deposit[0]?.address)?.allowance) >= Number(depositAmount) : true;
     }
 
-    function cleanString(str: string, addr: string) {
-        const token = wallet.find(t => t.tokenInfo.address === addr)?.tokenInfo;
-        const decimalPlaces = str.slice(token.decimals ?? '0');
-        const inFront = str.slice(0, str.length - token.decimals) ?? '0';
-        
+    function cleanString(str: string, decimals: number) {
+        if (Number(str) === 0) return '0';
+        const decimalPlaces = str.slice(decimals) ?? '0';
+        const inFront = str.slice(0, str.length - decimals) ?? '0';
+
         return `${inFront}.${decimalPlaces}` ?? '0';
     }
 
@@ -195,7 +195,7 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
                                 {item.symbol.toUpperCase()}
                             </div>
                             <div className="confirm-item-amount">
-                                {`${Number(cleanString(outputs[index]?.amount, item.address) ?? '0').toFixed(4)} (${item.percent}%)`}
+                                {`${Number(cleanString(outputs[index].amount, item.decimals)).toLocaleString()} (${item.percent}%)`}
                             </div>
                         </div>
                     ))}

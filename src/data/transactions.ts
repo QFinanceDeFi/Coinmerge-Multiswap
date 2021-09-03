@@ -162,3 +162,16 @@ export const approveContract = async (token: string, amount: string): Promise<an
         return false;
     }
 }
+
+export const getDecimals = async (address: string) => {
+    const web3 = initWeb3();
+    const erc20 = new web3.eth.Contract(ierc20, address);
+    const decimals = await erc20.methods.decimals()?.call().catch((e: any) => { return 18 }) ?? 18;
+    return decimals;
+}
+
+export const convertString = async (address: string, amount: string) => {
+    const decimals = await getDecimals(address);
+    
+    return toBaseUnit(amount, decimals, BN);
+}

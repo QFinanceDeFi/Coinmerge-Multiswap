@@ -1,5 +1,4 @@
 import React from "react";
-import { connect } from "react-redux";
 import { reset } from "../../actions/connectSlice";
 import Modal from "../Modal/Modal";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
