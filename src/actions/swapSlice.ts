@@ -35,11 +35,10 @@ export const swapSlice = createSlice({
             state.address = action.payload;
         },
         updateOutputs: (state: ISwapState, action: PayloadAction<any>) => {
-            const web3 = initWeb3();
             state.outputs = action.payload.tokens.map((item: any, index: number) => {
                 return {
                     address: item,
-                    amount: web3.utils.fromWei(action.payload.amounts[index], 'ether')
+                    amount: action.payload.amounts[index]
                 }
             });
         }

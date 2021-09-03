@@ -46,7 +46,7 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
     async function getOutputs() {
         const res = await checkOutputs(tokens, depositAmount, tokenBase, token).catch((e: any) => console.log(e));
         if (res) {
-            dispatch(updateOutputs({tokens: res[0], amounts: res[1]}));
+            dispatch(updateOutputs({tokens: res.tokens, amounts: res.outputs}));
         }
     }
 
@@ -66,7 +66,7 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
             ...state,
             status: 'pending'
         });
-        const txHash = await makeSwap(tokens, depositAmount, outputs, address, tokenBase, token).then((res: any) => {
+        const txHash = await makeSwap(tokens, depositAmount, outputs, tokenBase, token).then((res: any) => {
             setState({
                 ...state,
                 hash: res.transactionHash
@@ -127,6 +127,14 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
         return tokenBase ? Number(wallet.find((tok: any) => tok.tokenInfo.address === deposit[0]?.address)?.allowance) >= Number(depositAmount) : true;
     }
 
+    function cleanString(str: string, addr: string) {
+        const token = wallet.find(t => t.tokenInfo.address === addr)?.tokenInfo;
+        const decimalPlaces = str.slice(token.decimals ?? '0');
+        const inFront = str.slice(0, str.length - token.decimals) ?? '0';
+        
+        return `${inFront}.${decimalPlaces}` ?? '0';
+    }
+
     return (
         <>
         <div className="controls">
@@ -175,7 +183,7 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
                                 {item.symbol.toUpperCase()}
                             </div>
                             <div className="confirm-item-amount">
-                                {`${Number(outputs[index]?.amount ?? '0').toFixed(4)} (${item.percent}%)`}
+                                {`${Number(cleanString(outputs[index]?.amount, item.address) ?? '0').toFixed(4)} (${item.percent}%)`}
                             </div>
                         </div>
                     ))}

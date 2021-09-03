@@ -2,57 +2,47 @@ import Web3 from "web3";
 import { COINMERGE_ADDR, initWeb3, swapContract, SWAP_ADDRESS, web3Modal } from "../init";
 const ierc20 = require('./IERC20.json');
 
-export const makeSwap = async (portfolio: any, amount: string, expected: any, from: string, tokenBase = false, base?: string) => {
+export const makeSwap = async (portfolio: any, amount: string, expected: any, tokenBase = false, base?: string) => {
     const web3: Web3 = initWeb3();
     const tokens = portfolio.map((tok: any) => tok.address);
     const percent = portfolio.map((tok: any) => tok.percent);
-    const outputs: any[] = [];
-    expected.map(async (item: any, index: number) => {
-        const contract = new web3.eth.Contract(ierc20, tokens[index]);
-        if (contract.methods.decimals) {
-            const decimals = await contract.methods.decimals()?.call().then((res: any) => { return res }).catch(() => { return 18 });
-            outputs.push(web3.utils.toBN("0x"+(Number(item.amount)*10**decimals).toString(16)));
-        } else {
-            outputs.push(web3.utils.toBN("0x"+(Number(item.amount)*10**18).toString(16)));
-        }
-
-    });
+    const outputs = expected.map((item: any) => item.amount);
+    const from: string[] = await web3.eth.getAccounts();
 
     let send: any;
 
     if (tokenBase) {
         const contract = new web3.eth.Contract(ierc20, base);
-        if (contract.methods.decimals) {
-            const decimals = await contract.methods.decimals().call().then((res: any) => { return res }).catch((e: any) => { return 18 });
-            send = web3.utils.toBN("0x"+(Number(amount)*10**decimals).toString(16))
-        } else {
-            send = web3.utils.toBN("0x"+(Number(amount)*10**18).toString(16))
-        } 
+        const decimals = await contract.methods.decimals().call().then((res: any) => { return res }).catch((e: any) => { return 18 });
+        send = web3.utils.toBN("0x"+(Number(amount)*10**decimals).toString(16))
     } else {
-        send = web3.utils.toBN("0x"+(Number(amount)*10**18).toString(16))
+        send = web3.utils.toWei(amount, 'ether');
     }
 
     const data = async () => {
         if (tokenBase) {
             return await swapContract(web3).methods.makeTokenSwap(tokens, percent, outputs, COINMERGE_ADDR, base, send).encodeABI();
         } else {
+            console.log(tokens,percent,outputs,COINMERGE_ADDR);
             return await swapContract(web3).methods.makeETHSwap(tokens, percent, outputs, COINMERGE_ADDR).encodeABI()
         }
     }
 
-    const txParams = {
+    const txParams: any = {
         to: SWAP_ADDRESS,
-        from,
+        from: from[0],
         value: tokenBase ? '0x0' : send,
         data: await data()
     }
+
+    txParams.gas = web3.utils.toBN("0x"+(Number(await web3.eth.estimateGas(txParams)) * 1.2).toFixed(0)).toString(16);
 
     const tx: any = await web3.eth.sendTransaction(txParams);
 
     return tx;
 }
 
-export const liquidateForETH = async (portfolio: any, from: string) => {
+export const liquidateForETH = async (portfolio: any) => {
     const provider = await web3Modal.connect().catch(() => console.log('No provider'));
     const web3: Web3 = initWeb3(provider);
     const { tokens, expected } = portfolio.map((tok: any) => {
@@ -74,12 +64,16 @@ export const liquidateForETH = async (portfolio: any, from: string) => {
         outputs.push(web3.utils.toWei(expected[index], 'ether'));
     })
 
-    const txParams = {
+    const from: string[] = await web3.eth.getAccounts();
+
+    const txParams: any = {
         to: SWAP_ADDRESS,
-        from,
+        from: from[0],
         value: '0x0',
         data: swapContract(web3).methods.makeTokenSwapForETH(tokens, amounts, outputs, COINMERGE_ADDR).encodeABI()
     }
+
+    txParams.gas = Number(await web3.eth.estimateGas(txParams)) * 1.2;
 
     const tx: any = await web3.eth.sendTransaction(txParams);
 
@@ -97,12 +91,26 @@ export const checkOutputs = async (portfolio: any, amount: string, tokenBase = f
         const swap: any = swapContract(web3);
         if (tokenBase) {
             const erc = new web3.eth.Contract(ierc20, base);
-            const decimals = erc.methods.decimals ? await erc.methods.decimals().call().then((res: any) => { return res }).catch(() => { return 18 }) : 18;
+            console.log(await erc.methods.decimals.call())
+            const decimals = await erc.methods.decimals().call().catch(() => { return 18 });
             return await swap.methods.checkOutputsToken(tokens, percent, slippage, base, web3.utils.toBN("0x"+(Number(amount)*10**decimals).toString(16)))
                 .call().catch((e: any) => console.log(e));
         } else {
-            return await swap.methods.checkOutputsETH(tokens, percent, slippage, web3.utils.toWei(amount, 'ether'))
+            const expected = await swap.methods.checkOutputsETH(tokens, percent, slippage, web3.utils.toWei(amount, 'ether'))
                 .call().catch((e: any) => console.log(e));
+
+            const outputs: any[] = [];
+
+            const reducer = async (acc: any[], item: any, index: number) => {
+                const erc = new web3.eth.Contract(ierc20, tokens[index]);
+                const decimals = await erc.methods.decimals().call().catch(() => { return 18 });
+                outputs.push(web3.utils.toBN("0x"+(Number(item)*10**decimals).toString(16)));
+                acc[index] = web3.utils.toBN("0x"+(Number(item)*10**decimals).toString(16));
+                return item;
+            }
+            
+            const ret =  await expected[1].reduce(reducer, Promise.all([]));
+            return { tokens: expected[0], outputs: expected[1] };
         }
     }
     catch (e) {
@@ -137,12 +145,14 @@ export const approveContract = async (token: string, amount: string): Promise<an
 
         const contract = new web3.eth.Contract(ierc20, token);
         const data = contract.methods.approve(SWAP_ADDRESS, web3.utils.toWei(amount, 'ether')).encodeABI();
-        const txParams = {
+        const txParams: any = {
             to: token,
             from: from[0],
             value: '0x0',
             data
         }
+
+        txParams.gas = web3.eth.estimateGas(txParams);
 
         const tx = await web3.eth.sendTransaction(txParams);
 

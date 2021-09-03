@@ -51,7 +51,7 @@ const TokenControls: React.FC<IControlProps> = ({ remove, add, length }) => {
 
     async function processTx() {
         setModal(false);
-        await liquidateForETH(deposit, address);
+        await liquidateForETH(deposit);
     }
 
     return (

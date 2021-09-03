@@ -65,6 +65,7 @@ const Token: React.FC<ITokenProps> = ({ index }) => {
     }
 
     function cleanString(str: string) {
+        console.log()
         const decimalPlaces = str.slice(-tokenInfo?.tokenInfo.decimals) ?? '0';
         const inFront = str.slice(0, str.length - tokenInfo?.tokenInfo.decimals) ?? '0';
         
@@ -83,8 +84,8 @@ const Token: React.FC<ITokenProps> = ({ index }) => {
                 </div>
                 <div className="token-amount">
                     <span>{`Balance: ${Number(cleanString(tokenInfo?.rawBalance ?? '0')).toFixed(4) ?? 0} ${symbol && symbol.toUpperCase()}`}</span>
-                    <input className="token-input" type="number" value={amount} disabled />
-                    <span>{`~$${(Number(amount) * Number(priceUsd)).toFixed(2).toLocaleString()} USD`}</span>
+                    <input className="token-input" type="number" value={cleanString(amount)} disabled />
+                    <span>{`~$${(Number(cleanString(amount)) * Number(priceUsd)).toFixed(2).toLocaleString()} USD`}</span>
                 </div>
             </div>
             <div className="token-slippage" onClick={() => setSlippageModal(true)}>
