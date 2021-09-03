@@ -4,6 +4,7 @@ import Web3Modal from "web3modal";
 const multiswap = require('./data/Multiswap.json');
 
 export const SWAP_ADDRESS = '0x08b16410c53FA67b0CC2cA58bd0F6409f3349f7a';
+export const COINMERGE_ADDR = '0x1190074795dad0e61b61270de48e108427f8f817';
 
 export const providerOptions: any =  {
     walletconnect: {

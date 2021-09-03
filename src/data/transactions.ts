@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import { initWeb3, swapContract, SWAP_ADDRESS, web3Modal } from "../init";
+import { COINMERGE_ADDR, initWeb3, swapContract, SWAP_ADDRESS, web3Modal } from "../init";
 const ierc20 = require('./IERC20.json');
 
 export const makeSwap = async (portfolio: any, amount: string, expected: any, from: string, tokenBase = false, base?: string) => {
@@ -34,9 +34,9 @@ export const makeSwap = async (portfolio: any, amount: string, expected: any, fr
 
     const data = async () => {
         if (tokenBase) {
-            return await swapContract(web3).methods.makeTokenSwap(tokens, percent, outputs, SWAP_ADDRESS, base, send).encodeABI();
+            return await swapContract(web3).methods.makeTokenSwap(tokens, percent, outputs, COINMERGE_ADDR, base, send).encodeABI();
         } else {
-            return await swapContract(web3).methods.makeETHSwap(tokens, percent, outputs, SWAP_ADDRESS).encodeABI()
+            return await swapContract(web3).methods.makeETHSwap(tokens, percent, outputs, COINMERGE_ADDR).encodeABI()
         }
     }
 
@@ -78,7 +78,7 @@ export const liquidateForETH = async (portfolio: any, from: string) => {
         to: SWAP_ADDRESS,
         from,
         value: '0x0',
-        data: swapContract(web3).methods.makeTokenSwapForETH(tokens, amounts, outputs, SWAP_ADDRESS).encodeABI()
+        data: swapContract(web3).methods.makeTokenSwapForETH(tokens, amounts, outputs, COINMERGE_ADDR).encodeABI()
     }
 
     const tx: any = await web3.eth.sendTransaction(txParams);
