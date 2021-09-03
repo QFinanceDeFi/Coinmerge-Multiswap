@@ -21,8 +21,6 @@ export const makeSwap = async (portfolio: any, amount: string, expected: any, to
         send = web3.utils.toWei(amount, 'ether');
     }
 
-    console.log(send);
-
     const data = async () => {
         if (tokenBase) {
             return await swapContract(web3).methods.makeTokenSwap(tokens, percent, outputs, COINMERGE_ADDR, base, send).encodeABI();
@@ -94,7 +92,6 @@ export const checkOutputs = async (portfolio: any, amount: string, tokenBase = f
         const swap: any = swapContract(web3);
         if (tokenBase) {
             const erc = new web3.eth.Contract(ierc20, base);
-            console.log(await erc.methods.decimals.call())
             const decimals = await erc.methods.decimals().call().catch(() => { return 18 });
             return await swap.methods.checkOutputsToken(tokens, percent, slippage, base, web3.utils.toBN("0x"+(Number(amount)*10**decimals).toString(16)))
                 .call().catch((e: any) => console.log(e));
@@ -131,7 +128,6 @@ export const getTokenOutput = async (token: string, amount: string, slippage: nu
         const swap: any = swapContract(web3);
         const erc = new web3.eth.Contract(ierc20, token);
         const decimals = !erc.methods.decimals ? 18: await erc.methods.decimals().call().then((res: any) => { return res }).catch(() => { return 18 });
-        console.log(decimals);
         const out =  await swap.methods.checkTokenValueETH(token, toBaseUnit(amount, decimals, BN), slippage).call();
         return web3.utils.fromWei(out, 'ether');
     }
