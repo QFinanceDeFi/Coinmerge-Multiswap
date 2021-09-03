@@ -4,6 +4,7 @@ import { getPrice } from "./actions/priceSlice";
 import { getBalances, setWallet } from "./actions/walletSlice";
 import './App.css';
 import Brand from "./components/Brand/Brand";
+import Modal from "./components/Modal/Modal";
 import Navigation from "./components/Navigation/Navigation";
 import Wallet from "./components/Wallet/Wallet";
 import { useAppDispatch } from './hooks/hooks';
@@ -15,8 +16,13 @@ import SwapTokens from "./views/SwapTokens";
 
 const App: React.FC = () => {
   const [selected, setSelected] = React.useState<number>(1);
+  const [modal, setModal] = React.useState<boolean>(false);
   const dispatch = useAppDispatch();
   const width = useWindowWidth(50);
+
+  React.useEffect(() => {
+    setModal(true)
+  }, [])
 
   const onConnect = async () => {
     const provider = await web3Modal.connect().catch(err => console.log(err));
@@ -92,6 +98,21 @@ const App: React.FC = () => {
         <Liquidate />
       }
     </div>
+    {modal &&
+    <Modal close={() => setModal(false)} open={modal}>
+      <span>I understand that CoinSwap is a new swapping platform that routes through Uniswap. I understand that, at this time, selling ERC tokens with taxed tokenomics will cause the tax on said tokens to occur twice, once by CoinSwap, and once by Uniswap.</span>
+      <div className="disconnect-modal">
+            <div className="modal-actions">
+                <button onClick={() => { reset(); setModal(false); }} className="disconnect-modal-action">
+                    Cancel
+                </button>
+                <button onClick={() => setModal(false)} className="disconnect-modal-action">
+                    Confirm
+                </button>
+            </div>              
+        </div>
+    </Modal>
+    }
     </>
   );
 }
