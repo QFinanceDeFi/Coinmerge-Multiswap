@@ -1,4 +1,3 @@
-const BASE: string = "https://api.coingecko.com/api/v3/";
 const tokenList = require('./tokenList.json');
 
 interface ITokenOutput {

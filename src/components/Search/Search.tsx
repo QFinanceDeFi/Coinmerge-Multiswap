@@ -37,7 +37,7 @@ const Search: React.FC<ISearchProps> = ({ update }) => {
                     options.map((item: any) => (
                         <div className="token-list-item" key={item.address} onClick={() => { update(item.name, item.symbol, item.address) }}>
                             <div className="token-list-item-brand">
-                                {item.logo && <img src={item.logo} width="24px" />}
+                                {item.logo && <img src={item.logo} width="24px" alt="token logo" />}
                                 <div className="token-list-item-name">
                                     <span>{`${item.name} (${item.symbol?.toUpperCase()})`}</span>
                                 </div>

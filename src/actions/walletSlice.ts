@@ -21,7 +21,7 @@ const initialState: IWalletState = {
 };
 
 export const getBalances: any = createAsyncThunk('wallet/balances', async (account: string) => {
-    const userTokens: any = await fetch(`https://kovan-api.ethplorer.io/getAddressInfo/${account}?apiKey=freekey`)
+    const userTokens: any = await fetch(`https://api.ethplorer.io/getAddressInfo/${account}?apiKey=freekey`)
         .then((item: any) => item.json()).then((json: any) => {
             return json.tokens ?? [];
         });

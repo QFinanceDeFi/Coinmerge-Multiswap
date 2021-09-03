@@ -17,7 +17,7 @@ const Deposit: React.FC = () => {
     React.useEffect(() => {
         dispatch(depositAmount(input));
         dispatch(depositToken('ETH'));
-    }, [input])
+    }, [input, dispatch])
 
     return (
         <>
@@ -26,7 +26,7 @@ const Deposit: React.FC = () => {
             <div className="deposit-content">
                 <div className="deposit-details">
                     <div className="deposit-icon">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6f/Ethereum-icon-purple.svg" width="36px" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6f/Ethereum-icon-purple.svg" width="36px" alt="ETH logo" />
                         <span>ETH</span>
                     </div>
                 </div>

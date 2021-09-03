@@ -6,7 +6,7 @@ import './App.css';
 import Brand from "./components/Brand/Brand";
 import Navigation from "./components/Navigation/Navigation";
 import Wallet from "./components/Wallet/Wallet";
-import { useAppDispatch, useAppSelector } from './hooks/hooks';
+import { useAppDispatch } from './hooks/hooks';
 import useWindowWidth from "./hooks/useWindowWidth";
 import { initWeb3, web3Modal } from "./init";
 import Liquidate from "./views/Liquidate";
@@ -17,22 +17,6 @@ const App: React.FC = () => {
   const [selected, setSelected] = React.useState<number>(1);
   const dispatch = useAppDispatch();
   const width = useWindowWidth(50);
-  const {connected, address, balance, priceUsd, wallet} = useAppSelector(state => {
-    return {
-      connected: state.connect.connected,
-      address: state.connect.address,
-      balance: state.connect.balance,
-      priceUsd: state.price.priceUsd,
-      wallet: state.wallet
-    }
-  });
-
-  React.useEffect(() => {
-    dispatch(getPrice('ethereum'));
-    if (web3Modal.cachedProvider) {
-      onConnect();
-    }
-  }, [])
 
   const onConnect = async () => {
     const provider = await web3Modal.connect().catch(err => console.log(err));
@@ -83,7 +67,14 @@ const App: React.FC = () => {
         // ...
         onConnect();
       });
-}
+  }
+
+  React.useEffect(() => {
+    dispatch(getPrice('ethereum'));
+    if (web3Modal.cachedProvider) {
+      onConnect();
+    }
+  }, [dispatch])
 
   return (
     <>

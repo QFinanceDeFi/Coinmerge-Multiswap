@@ -47,8 +47,6 @@ export const makeSwap = async (portfolio: any, amount: string, expected: any, fr
         data: await data()
     }
 
-    console.log(txParams);
-
     const tx: any = await web3.eth.sendTransaction(txParams);
 
     return tx;
@@ -70,8 +68,6 @@ export const liquidateForETH = async (portfolio: any, expected: any, from: strin
         }
         outputs.push(web3.utils.toWei(expected[index], 'ether'));
     })
-
-    console.log(tokens,amounts,outputs);
 
     const txParams = {
         to: SWAP_ADDRESS,

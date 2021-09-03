@@ -1,9 +1,7 @@
 import React from "react";
-import { ArrowDown, Minus, Plus } from "react-feather";
-import { reset } from "../../actions/connectSlice";
-import { updateOutputs } from "../../actions/swapSlice";
-import { checkOutputs, getTokenOutput, liquidateForETH, makeSwap } from "../../data/transactions";
-import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
+import { Minus, Plus } from "react-feather";
+import { getTokenOutput, liquidateForETH } from "../../data/transactions";
+import { useAppSelector } from "../../hooks/hooks";
 import Modal from "../Modal/Modal";
 import { Check, X } from "react-feather";
 import ClipLoader from "react-spinners/ClipLoader";
@@ -23,7 +21,7 @@ interface ITransactionState {
     hash: string;
 }
 
-const TokenControls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = false, index = 0 }) => {
+const TokenControls: React.FC<IControlProps> = ({ remove, add, length }) => {
     const [state, setState] = React.useState<ITransactionState>({
         status: 'standby', message: '', hash: ''
     });
@@ -36,14 +34,12 @@ const TokenControls: React.FC<IControlProps> = ({ remove, add, length, tokenBase
         }
     });
 
-    const dispatch = useAppDispatch();
-
     async function getOutputs() {
         const tmp: any = [];
         deposit.map(async (item: any) => {
             const output = await getTokenOutput(item.address, item.depositAmount, 0.1);
             tmp.push(output);
-        });
+        }, []);
 
         setOutputs(tmp);
 
@@ -51,6 +47,7 @@ const TokenControls: React.FC<IControlProps> = ({ remove, add, length, tokenBase
     }
 
     async function processTx() {
+        setModal(false);
         await liquidateForETH(deposit, outputs, address);
     }
 
@@ -58,7 +55,7 @@ const TokenControls: React.FC<IControlProps> = ({ remove, add, length, tokenBase
         <>
         <div className="controls">
             <div className="submit-buttons">
-                <button className="submit-button" onClick={async () => { await getOutputs(); setModal(true) }}
+                <button className="submit-button" onClick={async () => { await getOutputs(); setModal(true)}}
                     disabled={deposit.filter(d => d.address === '' || Number(d.depositAmount) === 0) === []}>
                     Swap
                 </button>

@@ -6,12 +6,9 @@ import Token from "../components/Token/Token";
 import { useAppDispatch, useAppSelector } from "../hooks/hooks";
 
 const SwapTokens: React.FC = () => {
-    const { tokens, priceUsd, swap, wallet } = useAppSelector(state => {
+    const { tokens } = useAppSelector(state => {
         return {
-            tokens: state.tokens,
-            priceUsd: state.price.priceUsd,
-            swap: state.swap,
-            wallet: state.wallet.tokens
+            tokens: state.tokens
         }
     });
     const dispatch = useAppDispatch();

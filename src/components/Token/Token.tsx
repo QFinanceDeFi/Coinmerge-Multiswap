@@ -40,15 +40,15 @@ const Token: React.FC<ITokenProps> = ({ index }) => {
             logo,
             index
         }))
-    }, [percent])
+    }, [name, symbol, address, priceUsd, logo, tokenInfo, slippage, amount, index, percent, dispatch])
 
     React.useEffect(() => {
         if (address !== '') dispatch(getTokenInfo({token: address, index}));
-    }, [address])
+    }, [address, index, dispatch])
 
     React.useEffect(() => {
         dispatch(updateSlippage({slippage: slippageInput, index}));
-    }, [slippageInput])
+    }, [slippageInput, index, dispatch])
 
     function update(newName: string, newSymbol: string, newAddress: string) {
         setModal(false);
@@ -77,7 +77,7 @@ const Token: React.FC<ITokenProps> = ({ index }) => {
             <div className="token-content">
                 <div className="token-details">
                     <div className={`token-icon ${symbol === '' && 'token-icon-empty'}`} onClick={() => setModal(true)}>
-                        {logo !== '' && <img src={logo} width="24px" />}
+                        {logo !== '' && <img src={logo} width="24px" alt="token logo" />}
                         <span style={{fontWeight: 600}}>{symbol !== '' ? symbol.toUpperCase() : 'Select Token'}</span>
                     </div>
                 </div>

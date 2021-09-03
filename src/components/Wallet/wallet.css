@@ -41,7 +41,7 @@
 
 .floating-wallet-ct {
     display: flex;
-    width: 230px;
+    width: 210px;
     border-radius: 8px;
     overflow: hidden;
     position: fixed;

@@ -3,7 +3,6 @@ import NavigationItem from "./NavigationItem";
 import "./navigation.css";
 import { useAppDispatch } from "../../hooks/hooks";
 import { depositAmount } from "../../actions/swapSlice";
-import { updateDepositAmount } from "../../actions/depositSlice";
 
 interface INavigationProps {
     selected: number;

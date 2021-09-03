@@ -53,7 +53,6 @@ const Wallet: React.FC<IWalletProps> = ({ connect }) => {
                     <span onClick={() => connected ? setModal(true) : connect()} className="floating-wallet-link">
                         {connected ? 'Disconnect' : 'Connect'}
                     </span>
-                    <span className="floating-wallet-link">Pending Transactions</span>
                 </div>
             </div>
             </div>

@@ -3,7 +3,7 @@ import Web3 from "web3";
 import Web3Modal from "web3modal";
 const multiswap = require('./data/Multiswap.json');
 
-export const SWAP_ADDRESS = '0x24B211deC8b68c6A348Dd81B758DAC6899deF2b8';
+export const SWAP_ADDRESS = '0x08b16410c53FA67b0CC2cA58bd0F6409f3349f7a';
 
 export const providerOptions: any =  {
     walletconnect: {
@@ -15,7 +15,7 @@ export const providerOptions: any =  {
 }
 
 export const web3Modal: Web3Modal = new Web3Modal({
-    network: "kovan",
+    network: "mainnet",
     cacheProvider: true,
     theme: 'dark',
     providerOptions

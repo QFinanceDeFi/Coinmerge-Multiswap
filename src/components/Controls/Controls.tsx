@@ -1,6 +1,5 @@
 import React from "react";
-import { ArrowDown, Minus, Plus } from "react-feather";
-import { reset } from "../../actions/connectSlice";
+import { Minus, Plus } from "react-feather";
 import { updateOutputs } from "../../actions/swapSlice";
 import { approveContract, checkOutputs, makeSwap } from "../../data/transactions";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
@@ -46,7 +45,6 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
 
     async function getOutputs() {
         const res = await checkOutputs(tokens, depositAmount, tokenBase, token).catch((e: any) => console.log(e));
-        console.log(res);
         if (res) {
             dispatch(updateOutputs({tokens: res[0], amounts: res[1]}));
         }

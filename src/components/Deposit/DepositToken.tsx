@@ -1,6 +1,9 @@
 import React from "react";
+import Loader from "react-spinners/ClipLoader";
 import { getTokenData, setDepositItem, updateDepositAmount } from "../../actions/depositSlice";
-import { depositAmount, depositToken } from "../../actions/swapSlice";
+import { depositToken } from "../../actions/swapSlice";
+import { getBalances } from "../../actions/walletSlice";
+import { approveContract } from "../../data/transactions";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
 import Modal from "../Modal/Modal";
 import Search from "../Search/Search";
@@ -12,19 +15,23 @@ interface IDepositProps {
 }
 
 const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
+    const [state, setState] = React.useState({
+        status: 'standby',
+        message: 'Standby',
+        hash: '',
+        approved: true
+    })
     const [input, setInput] = React.useState<string>('');
     const [modal, setModal] = React.useState<boolean>(false);
-    const { name, symbol, address, tokenInfo, priceUsd, logo, wallet, amount, percent } = useAppSelector(state => {
+    const { symbol, address, tokenInfo, priceUsd, logo, wallet, amount } = useAppSelector(state => {
         return {
-            name: state.deposit[index].name,
             symbol: state.deposit[index].symbol,
             address: state.deposit[index].address,
             priceUsd: state.deposit[index].priceUsd,
             tokenInfo: state.wallet.tokens.find(t => t.tokenInfo.address === state.deposit[index].address),
             wallet: state.wallet.tokens,
             logo: state.deposit[index].logo,
-            amount: multi ? state.deposit[index].balance : state.swap.depositAmount,
-            percent: state.tokens.reduce((acc: any, curr: any) => acc + curr.percent, 0)
+            amount: multi ? state.deposit[index].depositAmount : state.swap.depositAmount
         }
     });
 
@@ -32,7 +39,13 @@ const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
 
     React.useEffect(() => {
         dispatch(updateDepositAmount({depositAmount: input, index}))
-    }, [input])
+        setState(s => {
+            return {
+                ...s,
+                approved: isApproved(input)
+            }
+        })
+    }, [input, address, dispatch, index])
 
     function update(newName: string, newSymbol: string, newAddress: string): void {
         setModal(false);
@@ -52,7 +65,45 @@ const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
         const decimalPlaces = str.slice(-tokenInfo?.tokenInfo.decimals) ?? '0';
         const inFront = str.slice(0, str.length - tokenInfo?.tokenInfo.decimals) ?? '0';
         
-        return `${inFront}.${decimalPlaces}` ?? '0';
+        return `${inFront}.${decimalPlaces}` ?? '0'
+    }
+
+    function isApproved(depositAmount: string): boolean {
+        return Number(wallet.find(t => t.tokenInfo.address === address)?.allowance ?? '0') > Number(depositAmount) ?? false
+    }
+
+    async function approve(depositAmount: string) {
+        setState({
+            status: 'pending',
+            message: 'Pending',
+            hash: '',
+            approved: state.approved
+        });
+        const txHash = await approveContract(address, depositAmount).then((res: any) => {
+            console.log(res);
+
+            setState({
+                status: 'success',
+                hash: res.transactionHash,
+                message: 'Success',
+                approved: true
+            })
+
+            return res.transactionHash
+        }).catch((e: any) => {
+            console.log(e);
+            setState({
+                status: 'error',
+                message: 'Approval failed',
+                hash: '',
+                approved: state.approved
+            });
+        });
+
+        await dispatch(getBalances(address));
+
+        console.log(txHash);
+
     }
 
     return (
@@ -61,7 +112,7 @@ const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
             <div className="deposit-content">
                 <div className="deposit-details">
                     <div className={`token-deposit-icon ${symbol === '' && 'token-icon-empty'}`} onClick={() => setModal(true)}>
-                        <img src={logo} width="32px" style={{display: logo === '' ? 'none' : 'block'}} />
+                        <img src={logo} width="32px" style={{display: logo === '' ? 'none' : 'block'}} alt="token logo" />
                         <span style={{fontSize: '14px'}}>{symbol === '' ? 'Select Token' : symbol.toUpperCase()}</span>
                     </div>
                 </div>
@@ -81,6 +132,13 @@ const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
                 <Search update={update} />
             </Modal>
         }
+        {multi && !state.approved &&
+        <button className={`token-approve-button ${state.approved && `token-approved`}`}
+            onClick={() => isApproved(amount) ? console.log('tx') : approve(amount)}
+            disabled={address === '' || Number(amount) === 0}>
+                {state.status === 'pending' && <Loader size="12" />}
+                <span style={{marginLeft: state.status === 'pending' ? '8px' : '0'}}>Approve</span>
+        </button>}
         </>
     )
 }
