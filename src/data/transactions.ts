@@ -1,5 +1,7 @@
 import Web3 from "web3";
 import { COINMERGE_ADDR, initWeb3, swapContract, SWAP_ADDRESS, web3Modal } from "../init";
+import { toBaseUnit } from "./utils";
+import BN from "bn.js"
 const ierc20 = require('./IERC20.json');
 
 export const makeSwap = async (portfolio: any, amount: string, expected: any, tokenBase = false, base?: string) => {
@@ -9,21 +11,22 @@ export const makeSwap = async (portfolio: any, amount: string, expected: any, to
     const outputs = expected.map((item: any) => item.amount);
     const from: string[] = await web3.eth.getAccounts();
 
-    let send: any;
+    let send: any = 0;
 
     if (tokenBase) {
         const contract = new web3.eth.Contract(ierc20, base);
         const decimals = await contract.methods.decimals().call().then((res: any) => { return res }).catch((e: any) => { return 18 });
-        send = web3.utils.toBN("0x"+(Number(amount)*10**decimals).toString(16))
+        send = toBaseUnit(amount, decimals, BN);
     } else {
         send = web3.utils.toWei(amount, 'ether');
     }
+
+    console.log(send);
 
     const data = async () => {
         if (tokenBase) {
             return await swapContract(web3).methods.makeTokenSwap(tokens, percent, outputs, COINMERGE_ADDR, base, send).encodeABI();
         } else {
-            console.log(tokens,percent,outputs,COINMERGE_ADDR);
             return await swapContract(web3).methods.makeETHSwap(tokens, percent, outputs, COINMERGE_ADDR).encodeABI()
         }
     }
@@ -35,7 +38,7 @@ export const makeSwap = async (portfolio: any, amount: string, expected: any, to
         data: await data()
     }
 
-    txParams.gas = web3.utils.toBN("0x"+(Number(await web3.eth.estimateGas(txParams)) * 1.2).toFixed(0)).toString(16);
+    txParams.gas = (Number(await web3.eth.estimateGas(txParams)) * 1.2).toFixed(0);
 
     const tx: any = await web3.eth.sendTransaction(txParams);
 
@@ -57,9 +60,9 @@ export const liquidateForETH = async (portfolio: any) => {
         const contract = new web3.eth.Contract(ierc20, tokens[index]);
         if (contract.methods.decimals) {
             const decimals = await contract.methods.decimals()?.call().then((res: any) => { return res }).catch(() => { return 18 });
-            amounts.push(web3.utils.toBN("0x"+(Number(portfolio[index].depositAmount)*10**decimals).toString(16)));
+            amounts.push(toBaseUnit(portfolio[index].depositAmount, decimals, BN));
         } else {
-            amounts.push(web3.utils.toBN("0x"+(Number(portfolio[index].depositAmount)*10**18).toString(16)));
+            amounts.push(toBaseUnit(portfolio[index].depositAmount, 18, BN));
         }
         outputs.push(web3.utils.toWei(expected[index], 'ether'));
     })
@@ -73,7 +76,7 @@ export const liquidateForETH = async (portfolio: any) => {
         data: swapContract(web3).methods.makeTokenSwapForETH(tokens, amounts, outputs, COINMERGE_ADDR).encodeABI()
     }
 
-    txParams.gas = Number(await web3.eth.estimateGas(txParams)) * 1.2;
+    txParams.gas = (Number(await web3.eth.estimateGas(txParams)) * 1.2).toFixed(0);
 
     const tx: any = await web3.eth.sendTransaction(txParams);
 
@@ -104,8 +107,8 @@ export const checkOutputs = async (portfolio: any, amount: string, tokenBase = f
             const reducer = async (acc: any[], item: any, index: number) => {
                 const erc = new web3.eth.Contract(ierc20, tokens[index]);
                 const decimals = await erc.methods.decimals().call().catch(() => { return 18 });
-                outputs.push(web3.utils.toBN("0x"+(Number(item)*10**decimals).toString(16)));
-                acc[index] = web3.utils.toBN("0x"+(Number(item)*10**decimals).toString(16));
+                outputs.push(toBaseUnit(item, decimals, BN));
+                acc[index] = toBaseUnit(item, decimals, BN)
                 return item;
             }
             
@@ -129,7 +132,7 @@ export const getTokenOutput = async (token: string, amount: string, slippage: nu
         const erc = new web3.eth.Contract(ierc20, token);
         const decimals = !erc.methods.decimals ? 18: await erc.methods.decimals().call().then((res: any) => { return res }).catch(() => { return 18 });
         console.log(decimals);
-        const out =  await swap.methods.checkTokenValueETH(token, web3.utils.toBN("0x"+(Number(amount)*10**decimals).toString(16)), slippage).call();
+        const out =  await swap.methods.checkTokenValueETH(token, toBaseUnit(amount, decimals, BN), slippage).call();
         return web3.utils.fromWei(out, 'ether');
     }
     catch (e) {
@@ -152,7 +155,7 @@ export const approveContract = async (token: string, amount: string): Promise<an
             data
         }
 
-        txParams.gas = web3.eth.estimateGas(txParams);
+        txParams.gas = (Number(await web3.eth.estimateGas(txParams)) * 1.1).toFixed(0);
 
         const tx = await web3.eth.sendTransaction(txParams);
 

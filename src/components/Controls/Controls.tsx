@@ -46,7 +46,12 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
     async function getOutputs() {
         const res = await checkOutputs(tokens, depositAmount, tokenBase, token).catch((e: any) => console.log(e));
         if (res) {
-            dispatch(updateOutputs({tokens: res.tokens, amounts: res.outputs}));
+            if (tokenBase){
+                dispatch(updateOutputs({tokens: res[0], amounts: res[1]}));
+            } else {
+                dispatch(updateOutputs({tokens: res.tokens, amounts: res.outputs}));
+            }
+   
         }
     }
 
@@ -67,10 +72,19 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
             status: 'pending'
         });
         const txHash = await makeSwap(tokens, depositAmount, outputs, tokenBase, token).then((res: any) => {
-            setState({
-                ...state,
-                hash: res.transactionHash
-            })
+            if (res.transactionHash) {
+                setState({
+                    status: 'success',
+                    message: 'Swap completed',
+                    hash: res.transactionHash
+                })
+            } else {
+                setState({
+                    status: 'error',
+                    message: 'Swap failed',
+                    hash: ''
+                })
+            }
 
             return res.transactionHash;
         }).catch((e: any) => {
@@ -83,14 +97,6 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
             return;
         })
 
-        if (txHash) {
-            setState({
-                status: 'success',
-                message: 'Swap successful',
-                hash: txHash
-            })
-        }
-
         return txHash;
     }
 
@@ -101,9 +107,21 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
             hash: ''
         });
         const txHash = await approveContract(deposit[0].address, depositAmount).then((res: any) => {
-            console.log(res);
+            if (!res) {
+                setState({
+                    status: 'error',
+                    message: 'Tx failed',
+                    hash: ''
+                });               
+            } else {
+                setState({
+                    status: 'success',
+                    hash: txHash,
+                    message: 'Success'
+                })
+            }
 
-            return res.transactionHash
+            return res;
         }).catch((e: any) => {
             console.log(e);
             setState({
@@ -112,12 +130,6 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
                 hash: ''
             });
         });
-
-        setState({
-            status: 'success',
-            hash: txHash,
-            message: 'Success'
-        })
 
         await dispatch(getBalances(address));
 
@@ -207,12 +219,12 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
                 {state.status === 'error' && <X color="red" size={24} />}
             </div>
             <div className="pending-tx-hash">
-                {state.status !== 'error' &&
+                {state.status === 'success' &&
                     <a href={`https://etherscan.io/tx/${state.hash}`} target="_blank noreferrer" className="pending-tx-hash-a">
-                        {state.hash !== '' && `${state.hash.slice(0, 5)}...${state.hash.slice(-5)}`}
+                        {state.hash && state.hash !== '' && `${state.hash.slice(0, 5)}...${state.hash.slice(-5)}`}
                     </a>
                 }
-                {state.status === 'error' &&
+                {state.status !== 'success' &&
                     <span>{state.message}</span>
                 }
             </div>
