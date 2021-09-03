@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import { initWeb3, swapContract, SWAP_ADDRESS, web3Modal } from "../init";
-const ierc20 = require('./IERC20.json').abi;
+const ierc20 = require('./IERC20.json');
 
 export const makeSwap = async (portfolio: any, amount: string, expected: any, from: string, tokenBase = false, base?: string) => {
     const web3: Web3 = initWeb3();
@@ -52,10 +52,15 @@ export const makeSwap = async (portfolio: any, amount: string, expected: any, fr
     return tx;
 }
 
-export const liquidateForETH = async (portfolio: any, expected: any, from: string) => {
+export const liquidateForETH = async (portfolio: any, from: string) => {
     const provider = await web3Modal.connect().catch(() => console.log('No provider'));
     const web3: Web3 = initWeb3(provider);
-    const tokens = portfolio.map((tok: any) => tok.address);
+    const { tokens, expected } = portfolio.map((tok: any) => {
+        return {
+            tokens: tok.address,
+            expected: tok.amountOut
+        }
+    });
     const outputs: any[] = [];
     const amounts: any[] = []; // portfolio.map((tok: any) => tok.depositAmount);
     expected.map(async (item: any, index: number) => {
@@ -114,7 +119,8 @@ export const getTokenOutput = async (token: string, amount: string, slippage: nu
     try {
         const swap: any = swapContract(web3);
         const erc = new web3.eth.Contract(ierc20, token);
-        const decimals = erc.methods.decimals ? await erc.methods.decimals().call().then((res: any) => { return res }).catch(() => { return 18 }) : 18;
+        const decimals = !erc.methods.decimals ? 18: await erc.methods.decimals().call().then((res: any) => { return res }).catch(() => { return 18 });
+        console.log(decimals);
         const out =  await swap.methods.checkTokenValueETH(token, web3.utils.toBN("0x"+(Number(amount)*10**decimals).toString(16)), slippage).call();
         return web3.utils.fromWei(out, 'ether');
     }

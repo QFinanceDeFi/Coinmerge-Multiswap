@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { initWeb3, SWAP_ADDRESS } from "../init";
 import type { RootState } from "../store";
-const ierc20 = require('../data/IERC20.json').abi;
+const ierc20 = require('../data/IERC20.json');
 
 interface ITokensState {
     tokenInfo: any;

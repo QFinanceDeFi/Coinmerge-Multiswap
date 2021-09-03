@@ -1,11 +1,13 @@
 import React from "react";
 import { Minus, Plus } from "react-feather";
 import { getTokenOutput, liquidateForETH } from "../../data/transactions";
-import { useAppSelector } from "../../hooks/hooks";
+import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
 import Modal from "../Modal/Modal";
 import { Check, X } from "react-feather";
 import ClipLoader from "react-spinners/ClipLoader";
 import "./controls.css";
+import { updateOutputs } from "../../actions/swapSlice";
+import { updateOutputAmounts } from "../../actions/depositSlice";
 
 interface IControlProps {
     remove: Function;
@@ -25,7 +27,6 @@ const TokenControls: React.FC<IControlProps> = ({ remove, add, length }) => {
     const [state, setState] = React.useState<ITransactionState>({
         status: 'standby', message: '', hash: ''
     });
-    const [outputs, setOutputs] = React.useState<string[]>(['0']);
     const [modal, setModal] = React.useState<boolean>(false);
     const { deposit, address } = useAppSelector(state => {
         return {
@@ -34,21 +35,23 @@ const TokenControls: React.FC<IControlProps> = ({ remove, add, length }) => {
         }
     });
 
+    const dispatch = useAppDispatch();
+
     async function getOutputs() {
-        const tmp: any = [];
+
         deposit.map(async (item: any) => {
             const output = await getTokenOutput(item.address, item.depositAmount, 0.1);
-            tmp.push(output);
+            dispatch(updateOutputAmounts({address: item.address, amountOut: output}));
+
+            return item
         }, []);
 
-        setOutputs(tmp);
-
-        return tmp;
+        return deposit;
     }
 
     async function processTx() {
         setModal(false);
-        await liquidateForETH(deposit, outputs, address);
+        await liquidateForETH(deposit, address);
     }
 
     return (
@@ -87,7 +90,7 @@ const TokenControls: React.FC<IControlProps> = ({ remove, add, length }) => {
                                 {item.symbol.toUpperCase()}
                             </div>
                             <div className="confirm-item-amount">
-                                {`${Number(item.depositAmount ?? '0').toFixed(3)} ${item.symbol.toUpperCase()} for ${outputs[index]?.slice(0, -15) ?? '0'} ETH`}
+                                {`${Number(item.depositAmount ?? '0').toFixed(3)} ${item.symbol.toUpperCase()} for ${deposit.find(d => d.address === item.address)?.amountOut?.slice(0, -15) ?? '0'} ETH`}
                             </div>
                         </div>
                     ))}

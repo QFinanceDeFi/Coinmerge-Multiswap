@@ -10,6 +10,7 @@ interface IDepositState {
     logo: string;
     decimals: number | string;
     depositAmount: string;
+    amountOut?: string;
 }
 
 const initialState: IDepositState[] = [{
@@ -53,6 +54,12 @@ export const depositSlice = createSlice({
         },
         updateDepositAmount: (state: IDepositState[], action: PayloadAction<any>) => {
             state[action.payload.index].depositAmount = action.payload.depositAmount;
+        },
+        updateOutputAmounts: (state: IDepositState[], action: PayloadAction<any>) => {
+            const index = state.findIndex(s => s.address === action.payload.address);
+            if (index > -1) {
+                state[index].amountOut = action.payload.amountOut;    
+            }     
         }
     },
     extraReducers: {
@@ -63,7 +70,7 @@ export const depositSlice = createSlice({
     }
 });
 
-export const { addDepositItem, removeDepositItem, setDepositItem, updateDepositAmount } = depositSlice.actions;
+export const { addDepositItem, removeDepositItem, setDepositItem, updateDepositAmount, updateOutputAmounts } = depositSlice.actions;
 
 export const depositSelect = (state: RootState) => state.deposit;
 

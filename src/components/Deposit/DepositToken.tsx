@@ -45,7 +45,7 @@ const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
                 approved: isApproved(input)
             }
         })
-    }, [input, address, dispatch, index])
+    }, [input, address, dispatch, index, logo])
 
     function update(newName: string, newSymbol: string, newAddress: string): void {
         setModal(false);
@@ -79,15 +79,25 @@ const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
             hash: '',
             approved: state.approved
         });
-        const txHash = await approveContract(address, depositAmount).then((res: any) => {
-            console.log(res);
-
-            setState({
-                status: 'success',
-                hash: res.transactionHash,
-                message: 'Success',
-                approved: true
-            })
+        const txHash = await approveContract(address, depositAmount).then(async (res: any) => {
+            if (!res) {
+                setState({
+                    status: 'error',
+                    message: 'Approval failed',
+                    hash: '',
+                    approved: false
+                });
+            }
+            else {
+                setState({
+                    status: 'success',
+                    hash: res.transactionHash,
+                    message: 'Success',
+                    approved: true
+                })
+                
+                await dispatch(getBalances(address));   
+            }
 
             return res.transactionHash
         }).catch((e: any) => {
@@ -96,11 +106,9 @@ const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
                 status: 'error',
                 message: 'Approval failed',
                 hash: '',
-                approved: state.approved
+                approved: false
             });
         });
-
-        await dispatch(getBalances(address));
 
         console.log(txHash);
 
