@@ -46,24 +46,15 @@ export const makeSwap = async (portfolio: any, amount: string, expected: any, to
 export const liquidateForETH = async (portfolio: any) => {
     const provider = await web3Modal.connect().catch(() => console.log('No provider'));
     const web3: Web3 = initWeb3(provider);
-    const { tokens, expected } = portfolio.map((tok: any) => {
-        return {
-            tokens: tok.address,
-            expected: tok.amountOut
-        }
+    const tokens: string[] = [];
+    const expected: string[] = [];
+    const outputs: string[] = [];
+    portfolio.map(async (tok: any) => {
+        console.log(tok);
+        tokens.push(tok.address);
+        expected.push(tok.amountOut);
+        outputs.push(toBaseUnit(tok.depositAmount, tok.decimals, BN));
     });
-    const outputs: any[] = [];
-    const amounts: any[] = []; // portfolio.map((tok: any) => tok.depositAmount);
-    expected.map(async (item: any, index: number) => {
-        const contract = new web3.eth.Contract(ierc20, tokens[index]);
-        if (contract.methods.decimals) {
-            const decimals = await contract.methods.decimals()?.call().then((res: any) => { return res }).catch(() => { return 18 });
-            amounts.push(toBaseUnit(portfolio[index].depositAmount, decimals, BN));
-        } else {
-            amounts.push(toBaseUnit(portfolio[index].depositAmount, 18, BN));
-        }
-        outputs.push(web3.utils.toWei(expected[index], 'ether'));
-    })
 
     const from: string[] = await web3.eth.getAccounts();
 
@@ -71,7 +62,7 @@ export const liquidateForETH = async (portfolio: any) => {
         to: SWAP_ADDRESS,
         from: from[0],
         value: '0x0',
-        data: swapContract(web3).methods.makeTokenSwapForETH(tokens, amounts, outputs, COINMERGE_ADDR).encodeABI()
+        data: swapContract(web3).methods.makeTokenSwapForETH(tokens, outputs, expected, COINMERGE_ADDR).encodeABI()
     }
 
     txParams.gas = (Number(await web3.eth.estimateGas(txParams)) * 1.2).toFixed(0);
@@ -129,7 +120,7 @@ export const getTokenOutput = async (token: string, amount: string, slippage: nu
         const erc = new web3.eth.Contract(ierc20, token);
         const decimals = !erc.methods.decimals ? 18: await erc.methods.decimals().call().then((res: any) => { return res }).catch(() => { return 18 });
         const out =  await swap.methods.checkTokenValueETH(token, toBaseUnit(amount, decimals, BN), slippage).call();
-        return web3.utils.fromWei(out, 'ether');
+        return out
     }
     catch (e) {
         console.log(e);

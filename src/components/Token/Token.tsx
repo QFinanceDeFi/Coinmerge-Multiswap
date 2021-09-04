@@ -17,7 +17,6 @@ interface ITokenProps {
 
 const Token: React.FC<ITokenProps> = ({ index }) => {
     const [percent, setPercent] = React.useState<number>(0);
-    const [convertedValue, setConvertedValue] = React.useState<string>('0');
     const [slippageInput, setSlippageInput] = React.useState<number>(0);
     const { name, symbol, address, priceUsd, logo, tokenInfo, slippage, amount } = useAppSelector(state => {
         return {

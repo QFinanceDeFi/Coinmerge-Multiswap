@@ -1,13 +1,13 @@
 import React from "react";
 import { Minus, Plus } from "react-feather";
-import { getTokenOutput, liquidateForETH } from "../../data/transactions";
+import { getDecimals, getTokenOutput, liquidateForETH } from "../../data/transactions";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
 import Modal from "../Modal/Modal";
 import { Check, X } from "react-feather";
 import ClipLoader from "react-spinners/ClipLoader";
 import "./controls.css";
 import { updateOutputs } from "../../actions/swapSlice";
-import { updateOutputAmounts } from "../../actions/depositSlice";
+import { updateDepositDecimals, updateOutputAmounts } from "../../actions/depositSlice";
 
 interface IControlProps {
     remove: Function;
@@ -41,8 +41,9 @@ const TokenControls: React.FC<IControlProps> = ({ remove, add, length }) => {
 
         deposit.map(async (item: any) => {
             const output = await getTokenOutput(item.address, item.depositAmount, 0.1);
+            const decimals = await getDecimals(item.address);
             dispatch(updateOutputAmounts({address: item.address, amountOut: output}));
-
+            dispatch(updateDepositDecimals({address: item.address, decimals: Number(decimals)}));
             return item
         }, []);
 

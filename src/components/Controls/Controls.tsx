@@ -190,7 +190,7 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
                 <span style={{fontSize: '12px'}}>Estimated values only</span>
                 <div className="confirm-list">
                     {tokens.map((item: any, index) => (
-                        <div className="confirm-line-item">
+                        <div className="confirm-line-item" key={index}>
                             <div className="confirm-item-symbol">
                                 {item.symbol.toUpperCase()}
                             </div>

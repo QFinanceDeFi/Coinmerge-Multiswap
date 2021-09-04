@@ -41,7 +41,7 @@ export const depositSlice = createSlice({
     reducers: {
         addDepositItem: (state: any) => {
             state.push({
-                name: '', symbol: '', address: '', balance: '0', priceUsd: '0', logo: '', decimals: 0, depositAmount: '0.0'
+                name: '', symbol: '', address: '', balance: '0', priceUsd: '0', logo: '', decimals: 18, depositAmount: '0.0'
             })
         },
         removeDepositItem: (state: any, action: any) => {
@@ -60,6 +60,12 @@ export const depositSlice = createSlice({
             if (index > -1) {
                 state[index].amountOut = action.payload.amountOut;    
             }     
+        },
+        updateDepositDecimals: (state: IDepositState[], action: PayloadAction<any>) => {
+            const index = state.findIndex(s => s.address === action.payload.address);
+            if (index > -1) {
+                state[index].decimals = action.payload.decimals
+            }
         }
     },
     extraReducers: {
@@ -70,7 +76,7 @@ export const depositSlice = createSlice({
     }
 });
 
-export const { addDepositItem, removeDepositItem, setDepositItem, updateDepositAmount, updateOutputAmounts } = depositSlice.actions;
+export const { addDepositItem, removeDepositItem, setDepositItem, updateDepositAmount, updateOutputAmounts, updateDepositDecimals } = depositSlice.actions;
 
 export const depositSelect = (state: RootState) => state.deposit;
 
