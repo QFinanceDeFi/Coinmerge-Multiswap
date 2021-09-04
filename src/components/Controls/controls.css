@@ -89,7 +89,7 @@
     overflow: scroll;
     text-align: left;
     flex-grow: 1;
-    margin: 24px;
+    margin: 24px 12px;
 }
 
 .confirm-line-item {
@@ -97,6 +97,7 @@
     justify-content: space-between;
     padding: 8px 0;
     border-bottom: 1px solid #b5ceff5b;
+    font-size: 14px;
 }
 
 .confirm-item-symbol {

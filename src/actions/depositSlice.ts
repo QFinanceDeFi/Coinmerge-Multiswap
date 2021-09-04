@@ -10,11 +10,12 @@ interface IDepositState {
     logo: string;
     decimals: number | string;
     depositAmount: string;
+    slippage: number;
     amountOut?: string;
 }
 
 const initialState: IDepositState[] = [{
-    name: '', symbol: '', address: '', balance: '0', priceUsd: '0', logo: '', decimals: 0, depositAmount: '0.0'
+    name: '', symbol: '', address: '', balance: '0', priceUsd: '0', logo: '', decimals: 0, slippage: 0, depositAmount: '0.0'
 }]
 
 export const getTokenData: any = createAsyncThunk('deposit/info',
@@ -41,7 +42,7 @@ export const depositSlice = createSlice({
     reducers: {
         addDepositItem: (state: any) => {
             state.push({
-                name: '', symbol: '', address: '', balance: '0', priceUsd: '0', logo: '', decimals: 18, depositAmount: '0.0'
+                name: '', symbol: '', address: '', balance: '0', priceUsd: '0', logo: '', decimals: 18, slippage: 0, depositAmount: '0.0'
             })
         },
         removeDepositItem: (state: any, action: any) => {
@@ -66,6 +67,12 @@ export const depositSlice = createSlice({
             if (index > -1) {
                 state[index].decimals = action.payload.decimals
             }
+        },
+        updateDepositSlippage: (state: IDepositState[], action: PayloadAction<any>) => {
+            const index = state.findIndex(s => s.address === action.payload.address);
+            if (index > -1) {
+                state[index].slippage = action.payload.slippage;
+            }
         }
     },
     extraReducers: {
@@ -76,7 +83,8 @@ export const depositSlice = createSlice({
     }
 });
 
-export const { addDepositItem, removeDepositItem, setDepositItem, updateDepositAmount, updateOutputAmounts, updateDepositDecimals } = depositSlice.actions;
+export const { addDepositItem, removeDepositItem, setDepositItem, updateDepositAmount,
+    updateOutputAmounts, updateDepositDecimals, updateDepositSlippage } = depositSlice.actions;
 
 export const depositSelect = (state: RootState) => state.deposit;
 

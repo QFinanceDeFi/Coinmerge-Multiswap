@@ -8,6 +8,7 @@ import { Check, X } from "react-feather";
 import ClipLoader from "react-spinners/ClipLoader";
 import "./controls.css";
 import { getBalances } from "../../actions/walletSlice";
+import { cleanString } from "../../data/utils";
 
 interface IControlProps {
     remove: Function;
@@ -137,14 +138,6 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, tokenBase = fa
 
     function isApproved() {
         return tokenBase ? Number(wallet.find((tok: any) => tok.tokenInfo.address === deposit[0]?.address)?.allowance) >= Number(depositAmount) : true;
-    }
-
-    function cleanString(str: string, decimals: number) {
-        if (Number(str) === 0) return '0';
-        const decimalPlaces = str.slice(decimals) ?? '0';
-        const inFront = str.slice(0, str.length - decimals) ?? '0';
-
-        return `${inFront}.${decimalPlaces}` ?? '0';
     }
 
     return (

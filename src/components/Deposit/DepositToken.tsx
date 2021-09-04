@@ -1,6 +1,6 @@
 import React from "react";
 import Loader from "react-spinners/ClipLoader";
-import { getTokenData, setDepositItem, updateDepositAmount } from "../../actions/depositSlice";
+import { getTokenData, setDepositItem, updateDepositAmount, updateDepositSlippage } from "../../actions/depositSlice";
 import { depositToken } from "../../actions/swapSlice";
 import { getBalances } from "../../actions/walletSlice";
 import { approveContract } from "../../data/transactions";
@@ -22,8 +22,10 @@ const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
         approved: true
     })
     const [input, setInput] = React.useState<string>('');
+    const [slippageInput, setSlippageInput] = React.useState<number>(0);
+    const [slippageModal, setSlippageModal] = React.useState<boolean>(false);
     const [modal, setModal] = React.useState<boolean>(false);
-    const { symbol, address, tokenInfo, priceUsd, logo, wallet, amount } = useAppSelector(state => {
+    const { symbol, address, tokenInfo, priceUsd, logo, wallet, slippage, amount } = useAppSelector(state => {
         return {
             symbol: state.deposit[index].symbol,
             address: state.deposit[index].address,
@@ -31,6 +33,7 @@ const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
             tokenInfo: state.wallet.tokens.find(t => t.tokenInfo.address === state.deposit[index].address),
             wallet: state.wallet.tokens,
             logo: state.deposit[index].logo,
+            slippage: state.deposit[index].slippage,
             amount: multi ? state.deposit[index].depositAmount : state.swap.depositAmount
         }
     });
@@ -46,6 +49,11 @@ const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
             }
         })
     }, [input, address, dispatch, index, logo])
+
+    React.useEffect(() => {
+        console.log(slippageInput);
+        dispatch(updateDepositSlippage({slippage: slippageInput, address}));
+    }, [slippageInput, index, dispatch])
 
     function update(newName: string, newSymbol: string, newAddress: string): void {
         setModal(false);
@@ -133,6 +141,9 @@ const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
                     <span>Value: ~${(Number(input) * Number(priceUsd)).toFixed(2).toLocaleString()}</span>
                 </div>
             </div>
+            <div className="token-slippage" onClick={() => setSlippageModal(true)}>
+                {`Slippage: ${slippage === 0 ? `Auto` : `${slippage}%`}`}
+            </div>
         </div>
         {modal &&
             <Modal open={modal} close={() => setModal(false)}>
@@ -147,6 +158,29 @@ const DepositToken: React.FC<IDepositProps> = ({ index, multi }) => {
                 {state.status === 'pending' && <Loader size="12" />}
                 <span style={{marginLeft: state.status === 'pending' ? '8px' : '0'}}>Approve</span>
         </button>}
+        {slippageModal &&
+            <Modal open={slippageModal} close={() => setSlippageModal(false)}>
+                <h3 style={{margin: '4px 0', fontWeight: 500}}>Custom Slippage</h3>
+                <span style={{fontSize: '14px', marginTop: '8px'}}>
+                    Warning: Increasing the slippage means you are willing to take less than the originally quoted amount on your swap.
+                    Too high a slippage value allows bots to front-run you, causing your swap to be at a higher price. If you
+                    are not sure if you need this, try completing the swap with 'Auto' slippage. If that fails, then you should slowly
+                    increase slippage value until the transaction is accepted.
+                </span>
+                <div className="token-slippage-input-container">
+                    <button onClick={() => setSlippageInput(0)} className="token-slippage-input-button">
+                        Auto
+                    </button>
+                    <input className="token-slippage-input" placeholder="0" type="number" min={0} max={100}
+                        onChange={(e: any) => setSlippageInput(e.target.value)} value={slippageInput} />
+                </div>
+                <div className="token-slippage-confirm">
+                    <button onClick={() => setSlippageModal(false)} className="token-slippage-confirm-button">
+                        Confirm
+                    </button>
+                </div>
+            </Modal>
+        }
         </>
     )
 }

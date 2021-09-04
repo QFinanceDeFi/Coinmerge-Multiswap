@@ -6,8 +6,8 @@ import Modal from "../Modal/Modal";
 import { Check, X } from "react-feather";
 import ClipLoader from "react-spinners/ClipLoader";
 import "./controls.css";
-import { updateOutputs } from "../../actions/swapSlice";
 import { updateDepositDecimals, updateOutputAmounts } from "../../actions/depositSlice";
+import { cleanString } from "../../data/utils";
 
 interface IControlProps {
     remove: Function;
@@ -52,7 +52,7 @@ const TokenControls: React.FC<IControlProps> = ({ remove, add, length }) => {
 
     async function processTx() {
         setModal(false);
-        await liquidateForETH(deposit);
+        const output = await liquidateForETH(deposit);
     }
 
     return (
@@ -91,7 +91,8 @@ const TokenControls: React.FC<IControlProps> = ({ remove, add, length }) => {
                                 {item.symbol.toUpperCase()}
                             </div>
                             <div className="confirm-item-amount">
-                                {`${Number(item.depositAmount ?? '0').toFixed(3)} ${item.symbol.toUpperCase()} for ${deposit.find(d => d.address === item.address)?.amountOut?.slice(0, -15) ?? '0'} ETH`}
+                                {`${Number(Number(item.depositAmount ?? '0').toFixed(3)).toLocaleString()} ${item.symbol.toUpperCase()} for 
+                                ${Number(cleanString(item.amountOut, 18)).toFixed(4)} ETH`}
                             </div>
                         </div>
                     ))}

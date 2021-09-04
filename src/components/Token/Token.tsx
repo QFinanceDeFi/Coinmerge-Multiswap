@@ -1,14 +1,11 @@
 import React from "react";
 import { getTokenInfo, updateDecimals, updateItem, updateSlippage } from "../../actions/tokenSlice";
-import { convertString } from "../../data/transactions";
-import { toBaseUnit } from "../../data/utils";
+import { cleanString } from "../../data/utils";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
 import useDecimals from "../../hooks/useDecimals";
-import { initWeb3 } from "../../init";
 import Modal from "../Modal/Modal";
 import Search from "../Search/Search";
 import Slider from "../Slider/Slider";
-import BN from "bn.js";
 import "./token.css";
 
 interface ITokenProps {
@@ -75,14 +72,6 @@ const Token: React.FC<ITokenProps> = ({ index }) => {
         }))
     }
 
-    function cleanString(str: string, decimals: number) {
-        if (Number(str) === 0) return '0';
-        const decimalPlaces = str.slice(decimals) ?? '0';
-        const inFront = str.slice(0, str.length - decimals) ?? '0';
-
-        return `${inFront}.${decimalPlaces}` ?? '0';
-    }
-
     return (
         <>
         <div className="token">
@@ -95,12 +84,12 @@ const Token: React.FC<ITokenProps> = ({ index }) => {
                 </div>
                 <div className="token-amount">
                     <span>{`Balance: ${Number(Number(cleanString((tokenInfo?.rawBalance ?? '0'), decimals)).toFixed(4)).toLocaleString()} ${symbol && symbol.toUpperCase()}`}</span>
-                    <input className="token-input" value={Number(cleanString(amount, decimals)).toLocaleString()} disabled />
+                    <input className="token-input" value={Number(Number(cleanString(amount, decimals)).toFixed(5)).toLocaleString()} disabled />
                     <span>{`~$${(Number(Number(cleanString(amount, decimals)) * Number(priceUsd)).toFixed(2)).toLocaleString()} USD`}</span>
                 </div>
             </div>
             <div className="token-slippage" onClick={() => setSlippageModal(true)}>
-                {`Slippage: ${slippage === 0 ? `Auto` : slippage}`}
+                {`Slippage: ${slippage === 0 ? `Auto` : `${slippage}%`}`}
             </div>
             <div className="token-warning">
                 {address !== '' && <span>Validate {symbol.toUpperCase()}: <a href={`https://etherscan.io/token/${address}`} target="_blank noreferrer">
