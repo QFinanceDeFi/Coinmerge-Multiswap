@@ -35,7 +35,7 @@ const Wallet: React.FC<IWalletProps> = ({ connect }) => {
                 <div className="floating-wallet-top">
                 {connected ?
                     <a href={`https://etherscan.io/address/${address}`} target="_blank noreferrer">
-                        {`${address.slice(0, 6)}...${address.slice(-5)}`}
+                        {`${address?.slice(0, 6) ?? ''}...${address?.slice(-5) ?? ''}`}
                     </a>
                     :
                     <span onClick={() => setModal(!modal)}>
