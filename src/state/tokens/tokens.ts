@@ -25,17 +25,23 @@ const initialState: ITokenState[] = [{
     logo: '',
     decimals: 18,
     slippage: 0,
-    depositAmount: '',
+    depositAmount: '0',
     status: 'standby'
 }];
 
 export const getTokenInfo: any = createAsyncThunk('tokens/info', async (data: any): Promise<any> => {
-    if (data.token === '') return { index: data.index, priceUsd: '0', logo: '' };
+    if (data.token === '') {
+        return {
+            index: data.index,
+            priceUsd: '0',
+            logo: ''
+        };
+    }
     const url: string = `https://api.coingecko.com/api/v3/coins/ethereum/contract/${data.token}`;
     const { priceUsd, logo } = await fetch(url)
         .then((res: any) => res.json()).then((json: any) => {
             return {
-                priceUsd: json.market_data.current_price.usd,
+                priceUsd: json.market_data.current_price.usd ?? 0,
                 logo: json.image.small
             }
     });
