@@ -19,7 +19,6 @@ const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
     const [percent, setPercent] = React.useState<number>(0);
     const [slippageInput, setSlippageInput] = React.useState<number>(0);
     const [input, setInput] = React.useState<string>('');
-    const [value, setValue] = React.useState<number>(0);
     const { name, symbol, address, priceUsd, logo, tokenInfo, slippage, amount, wallet } = useAppSelector(state => {
         return {
             name: state.tokens[index].name,

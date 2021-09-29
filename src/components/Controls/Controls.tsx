@@ -151,7 +151,7 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, liq = false })
                                 {item.symbol.toUpperCase()}
                             </div>
                             <div className="confirm-item-amount">
-                                {!liq && `${Number(cleanString(outputs[index]?.amount ?? '0', item.decimals)).toLocaleString()} ${item.symbol} (${item.percent}%)`}
+                                {!liq && `${Number(cleanString(outputs[index]?.amount ?? '0', item.decimals)).toLocaleString()} (${item.percent}%)`}
                                 {liq && `${Number(cleanString(outputs[index]?.amount ?? '0', 18))} ETH`}
                             </div>
                         </div>
