@@ -27,42 +27,56 @@ const initialState: IWalletState = {
 
 export const getWalletData: any = createAsyncThunk('wallet/data', async (): Promise<IWalletState> => {
     try {
-        const accounts: string[] = await web3.eth.getAccounts();
-        const userTokens: IWalletState = await fetch(`https://api.ethplorer.io/getAddressInfo/${accounts[0]}?apiKey=freekey`)
-            .then((item: any) => item.json()).then(async (json: any) => {
-                const reducer = async (arr: any, item: any) => {
-                    const allowance: string = await web3.alchemy.getTokenAllowance({
-                        contract: item.tokenInfo.address,
-                        owner: accounts[0],
-                        spender: SWAP_ADDRESS}).catch((e: any) => {
-                            console.log(e);
-                            return '0';
-                        });
+        const accounts: string[] = await web3.eth.getAccounts().catch(() => { return [] });
+        if (accounts && accounts.length > 0) {
+            const userTokens: IWalletState = await fetch(`https://api.ethplorer.io/getAddressInfo/${accounts[0]}?apiKey=${process.env.REACT_APP_ETHPLORER}`)
+                .then((item: any) => item.json()).then(async (json: any) => {
+                    const reducer = async (arr: any, item: any) => {
+                        const allowance: string = await web3.alchemy.getTokenAllowance({
+                            contract: item.tokenInfo.address,
+                            owner: accounts[0],
+                            spender: SWAP_ADDRESS}).catch((e: any) => {
+                                console.log(e);
+                                return '0';
+                            });
 
-                    const newItem: object = {
-                        ...item,
-                        allowance
+                        const newItem: object = {
+                            ...item,
+                            allowance
+                        }
+
+                        const newList = Promise.resolve(arr).then((res: any) => {
+                            res.push(newItem);
+                            return res;
+                        })
+
+                        return newList;
                     }
 
-                    const newList = Promise.resolve(arr).then((res: any) => {
-                        res.push(newItem);
-                        return res;
-                    })
+                    const newList: any = await json.tokens.reduce(reducer, Promise.all([]));
 
-                    return newList;
-                }
+                    return {
+                        tokens: newList,
+                        ethPrice: json.ETH.price.rate,
+                        ethBalance: json.ETH.balance,
+                        status: 'success'
+                    };
+                });
 
-                const newList: any = await json.tokens.reduce(reducer, Promise.all([]));
+            return userTokens;            
+        } else {
+            const priceUsd: number = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd`).then((res: any) => res.json().then((json: any) => {
+                return json.ethereum.usd;
+            })).catch(() => { return 0 });
 
-                return {
-                    tokens: newList,
-                    ethPrice: json.ETH.price.rate,
-                    ethBalance: json.ETH.balance,
-                    status: 'success'
-                };
-            });
+            return {
+                tokens: [],
+                ethPrice: priceUsd,
+                ethBalance: 0,
+                status: 'success'
+            }
+        }
 
-        return userTokens;
     }
     catch (e) {
         console.log(e);

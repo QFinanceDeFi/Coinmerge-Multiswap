@@ -9,7 +9,7 @@ interface ITokenOutput {
 export const searchToken = async (symbol: string, eth = true): Promise<ITokenOutput[]> => {
     const getTokens = async () => {
         if (symbol.startsWith('0x')) {
-            const coin = await fetch(`https://api.ethplorer.io/getTokenInfo/${symbol}?apiKey=freekey`).then((res: any) => {
+            const coin = await fetch(`https://api.ethplorer.io/getTokenInfo/${symbol}?apiKey=${process.env.REACT_APP_ETHPLORER}`).then((res: any) => {
                 if (!res.ok) {
                     return [];
                 }
