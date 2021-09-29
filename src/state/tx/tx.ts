@@ -73,7 +73,13 @@ export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio
             data: data()
         }
 
-        const tx: any = await web3.eth.sendTransaction(txParams).catch((e: Error) => { console.log(e); throw Error });
+        const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
+        const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;})
+        txParams.gas = gas;
+        txParams.maxFeePerGas = (Number(fee) * 1.25).toFixed(0);
+        txParams.maxPriorityFeePerGas = web3.utils.fromWei('1500000000000000000', 'gwei');
+
+        const tx: any = await web3.eth.sendTransaction(txParams).catch((e: Error) => { throw Error });
 
         return tx;        
     }
@@ -111,6 +117,12 @@ export const liquidateForETH: any = createAsyncThunk('tx/liquidate', async (args
             ).encodeABI()
         }
 
+        const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
+        const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;})
+        txParams.gas = gas;
+        txParams.maxFeePerGas = (Number(fee) * 1.25).toFixed(0);
+        txParams.maxPriorityFeePerGas = web3.utils.fromWei('1500000000000000000', 'gwei');
+
         const tx: any = await web3.eth.sendTransaction(txParams).catch((e: Error) => { console.log(e); throw Error });
         dispatch(await getWalletData());
 
@@ -136,6 +148,12 @@ export const approveContract: any = createAsyncThunk('tx/approve', async (args: 
             value: '0x0',
             data
         }
+
+        const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
+        const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;})
+        txParams.gas = gas;
+        txParams.maxFeePerGas = (Number(fee) * 1.25).toFixed(0);
+        txParams.maxPriorityFeePerGas = web3.utils.fromWei('1500000000000000000', 'gwei');
 
         const tx = await web3.eth.sendTransaction(txParams).catch((e: Error) => { console.log(e); throw Error });
         dispatch(await getWalletData());
