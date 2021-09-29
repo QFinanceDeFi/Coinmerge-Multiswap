@@ -53,7 +53,7 @@ export const getWalletData: any = createAsyncThunk('wallet/data', async (): Prom
                         return newList;
                     }
 
-                    const newList: any = await json.tokens.reduce(reducer, Promise.all([]));
+                    const newList: any = await json.tokens?.reduce(reducer, Promise.all([])) ?? [];
 
                     return {
                         tokens: newList,
