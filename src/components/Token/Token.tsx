@@ -19,6 +19,7 @@ const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
     const [percent, setPercent] = React.useState<number>(0);
     const [slippageInput, setSlippageInput] = React.useState<number>(0);
     const [input, setInput] = React.useState<string>('');
+    const [value, setValue] = React.useState<number>(0);
     const { name, symbol, address, priceUsd, logo, tokenInfo, slippage, amount, wallet } = useAppSelector(state => {
         return {
             name: state.tokens[index].name,
@@ -53,21 +54,26 @@ const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
 
     React.useEffect(() => {
         dispatch(updateDecimals({address, decimals}));
-    }, [decimals, address, dispatch])
+    }, [decimals, address, dispatch]);
 
     React.useEffect(() => {
-        if (address !== '') dispatch(getTokenInfo({token: address, index}));
-    }, [address, index, dispatch])
+        async function get() {
+            dispatch(await getTokenInfo({token: address, index}));
+        }
+        if (address !== '') {
+            Promise.resolve(async () => await get ());
+        }
+    }, [address, index, dispatch]);
 
     React.useEffect(() => {
         dispatch(updateSlippage({slippage: slippageInput, index}));
-    }, [slippageInput, index, dispatch])
+    }, [slippageInput, index, dispatch]);
 
     React.useEffect(() => {
         dispatch(updateDepositAmount({index, depositAmount: input}))
-    }, [input, dispatch, index])
+    }, [input, dispatch, index]);
 
-    function update(newName: string, newSymbol: string, newAddress: string) {
+    async function update(newName: string, newSymbol: string, newAddress: string) {
         setModal(false);
         dispatch(updateItem({
             name: newName,
@@ -78,8 +84,9 @@ const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
             percent,
             slippage,
             index
-        }))
-    }
+        }));
+        dispatch(await getTokenInfo({index, token: newAddress}))
+    };
 
     async function approve() {
         try {
@@ -114,7 +121,7 @@ const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
                     <input className="token-input"
                         value={deposit ? input : Number(Number(cleanString(amount, decimals)).toFixed(5)).toLocaleString()}
                         disabled={!deposit} onChange={(e: any) => setInput(e.target.value)} />
-                    <span>{`~$${(Number(Number(cleanString(amount, decimals)) * Number(priceUsd)).toFixed(2)).toLocaleString()} USD`}</span>
+                    <span>{`~$${(Number(Number(deposit ? input : cleanString(amount, decimals)) * Number(priceUsd)).toFixed(2)).toLocaleString()} USD`}</span>
                 </div>
             </div>
             <div className="token-slippage" onClick={() => setSlippageModal(true)}>
