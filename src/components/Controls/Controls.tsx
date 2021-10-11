@@ -104,7 +104,7 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, liq = false })
             </div>
             {percent !== 0 && percent !== 100 &&
             <div className="submit-error" style={{margin: '8px 0'}}>
-                <span style={{color: 'red'}}>Please ensure the portfolio has 100% allocation</span>
+                <span style={{color: 'red'}}>Ensure the portfolio has 100% allocation</span>
             </div>
             }
             {Number(depositAmount) === 0 && percent === 100 &&

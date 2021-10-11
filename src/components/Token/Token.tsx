@@ -47,11 +47,15 @@ const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
     const dispatch = useAppDispatch();
 
     const isApproved = React.useCallback(async () => {
-        const token: any = new web3.eth.Contract(erc20, address);
-        const allowance: string = await token.methods.allowance(account, SWAP_ADDRESS).call().catch(() => '0');
-        const decimals: number = await token.methods.decimals().call().catch(() => 18);
-        
-        return web3.utils.toBN(allowance) >= toBaseUnit(amount, decimals, BN);
+        if (account !== '') {
+            const token: any = new web3.eth.Contract(erc20, address);
+            const allowance: string = await token.methods.allowance(account, SWAP_ADDRESS).call().catch(() => '0');
+            const decimals: number = await token.methods.decimals().call().catch(() => 18);
+            
+            return web3.utils.toBN(allowance) >= toBaseUnit(amount, decimals, BN);            
+        } else {
+            return false;
+        }
     }, [account, address, amount]);
 
     React.useEffect(() => {
