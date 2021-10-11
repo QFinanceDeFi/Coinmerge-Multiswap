@@ -1,10 +1,14 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { CM_ADDRESS, swapContract, SWAP_ADDRESS, web3 } from "../../data/base";
+import { swapContract, SWAP_ADDRESS, web3 } from "../../data/base";
 import type { RootState } from "../../store";
-import { toBaseUnit } from "../../data/utils";
+import { checkIsBase, toBaseUnit } from "../../data/utils";
 import BN from "bn.js"
 import { getDecimals } from "../../data/calls";
 import { getWalletData } from "../wallet/wallet";
+import detectEthereumProvider from "@metamask/detect-provider";
+import { clearSwap } from "../swap/swap";
+import { clearTokens } from "../tokens/tokens";
+
 const ierc20 = require('../../data/IERC20.json');
 
 interface ITxState {
@@ -19,7 +23,7 @@ const initialState: ITxState = {
     hash: ''
 }
 
-export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio: any, expected: any, amount: string, base: string}): Promise<any> => {
+export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio: any, expected: any, amount: string, base: string}, { getState, dispatch }): Promise<any> => {
     try {
         const tokens: string[] = [];
         const percent: number[] = [];
@@ -35,7 +39,7 @@ export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio
 
         let send: any = 0;
 
-        if (args.base !== "ETH") {
+        if (!checkIsBase(args.base)) {
             const contract = new web3.eth.Contract(ierc20, args.base);
             const decimals = await contract.methods.decimals().call().catch((e: Error) => {
                 console.log(e);
@@ -47,12 +51,12 @@ export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio
         }
 
         const data = () => {
-            if (args.base !== "ETH") {
+            if (!checkIsBase(args.base)) {
                 return swapContract().methods.makeTokenSwap(
                     tokens,
                     percent,
                     outputs,
-                    CM_ADDRESS,
+                    SWAP_ADDRESS,
                     args.base,
                     send
                 ).encodeABI();
@@ -61,7 +65,7 @@ export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio
                     tokens,
                     percent,
                     outputs,
-                    CM_ADDRESS
+                    SWAP_ADDRESS
                 ).encodeABI();
             }
         }
@@ -69,17 +73,24 @@ export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio
         const txParams: any = {
             to: SWAP_ADDRESS,
             from: from[0],
-            value: args.base !== "ETH" ? "0x0" : send,
+            value: !checkIsBase(args.base) ? "0x0" : send,
             data: data()
         }
 
-        const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
-        const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;})
-        txParams.gas = gas;
-        txParams.maxFeePerGas = (Number(fee) * 1.25).toFixed(0);
-        txParams.maxPriorityFeePerGas = web3.utils.fromWei('1500000000000000000', 'gwei');
+        const provider: any = await detectEthereumProvider();
+
+        if (Number(provider.chainId) === 1) {
+            const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
+            const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;})
+            txParams.gas = gas;
+            txParams.maxFeePerGas = (Number(fee) * 1.25).toFixed(0);
+            txParams.maxPriorityFeePerGas = web3.utils.fromWei('1500000000000000000', 'gwei');            
+        }
 
         const tx: any = await web3.eth.sendTransaction(txParams).catch((e: Error) => { throw Error });
+
+        dispatch(clearSwap());
+        dispatch(clearTokens());
 
         return tx;        
     }
@@ -113,18 +124,24 @@ export const liquidateForETH: any = createAsyncThunk('tx/liquidate', async (args
                 tokens,
                 inputs,
                 expected,
-                CM_ADDRESS
+                SWAP_ADDRESS
             ).encodeABI()
         }
 
-        const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
-        const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;})
-        txParams.gas = gas;
-        txParams.maxFeePerGas = (Number(fee) * 1.25).toFixed(0);
-        txParams.maxPriorityFeePerGas = web3.utils.fromWei('1500000000000000000', 'gwei');
+        const provider: any = await detectEthereumProvider();
+
+        if (Number(provider.chainId) === 1) {
+            const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
+            const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;})
+            txParams.gas = gas;
+            txParams.maxFeePerGas = (Number(fee) * 1.1).toFixed(0);
+            txParams.maxPriorityFeePerGas = web3.utils.fromWei('1500000000000000000', 'gwei');            
+        }
 
         const tx: any = await web3.eth.sendTransaction(txParams).catch((e: Error) => { console.log(e); throw Error });
         dispatch(await getWalletData());
+        dispatch(clearSwap());
+        dispatch(clearTokens());
 
         return tx;
     }
@@ -150,10 +167,15 @@ export const approveContract: any = createAsyncThunk('tx/approve', async (args: 
         }
 
         const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
-        const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;})
-        txParams.gas = gas;
-        txParams.maxFeePerGas = (Number(fee) * 1.25).toFixed(0);
-        txParams.maxPriorityFeePerGas = web3.utils.fromWei('1500000000000000000', 'gwei');
+        const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;});
+
+        const provider: any = await detectEthereumProvider();
+
+        if (Number(provider.chainId) === 1) {
+            txParams.gas = gas;
+            txParams.maxFeePerGas = (Number(fee) * 1.25).toFixed(0);
+            txParams.maxPriorityFeePerGas = web3.utils.fromWei('1500000000000000000', 'gwei');
+        }
 
         const tx = await web3.eth.sendTransaction(txParams).catch((e: Error) => { console.log(e); throw Error });
         dispatch(await getWalletData());

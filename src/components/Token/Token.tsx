@@ -1,14 +1,19 @@
 import React from "react";
-import { getTokenInfo, updateDecimals, updateDepositAmount, updateItem, updateSlippage } from "../../state/tokens/tokens";
-import { cleanString } from "../../data/utils";
+import { getTokenBalance, getTokenInfo, updateDepositAmount, updateItem, updateSlippage } from "../../state/tokens/tokens";
+import { checkIsBase, cleanString, toBaseUnit } from "../../data/utils";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
 import useDecimals from "../../hooks/useDecimals";
 import Modal from "../Modal/Modal";
 import Search from "../Search/Search";
 import Slider from "../Slider/Slider";
 import "./token.css";
-import { getWalletData } from "../../state/wallet/wallet";
 import { approveContract } from "../../state/tx/tx";
+import useToken from "../../hooks/useToken";
+import { SWAP_ADDRESS, web3 } from "../../data/base";
+import BN from "bn.js";
+import { NetworkExplorers } from "../../data/networks";
+
+const erc20 = require('../../data/IERC20.json');
 
 interface ITokenProps {
     index: number;
@@ -18,24 +23,36 @@ interface ITokenProps {
 const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
     const [percent, setPercent] = React.useState<number>(0);
     const [slippageInput, setSlippageInput] = React.useState<number>(0);
-    const [input, setInput] = React.useState<string>('');
-    const { name, symbol, address, priceUsd, logo, tokenInfo, slippage, amount, wallet } = useAppSelector(state => {
+    const [input, setInput] = React.useState<string>('0');
+    const [enabled, setEnabled] = React.useState<boolean>(false);
+    const { account, name, symbol, address, priceUsd, logo, slippage, amount, chain } = useAppSelector(state => {
         return {
+            account: state.connect.address,
             name: state.tokens[index].name,
             symbol: state.tokens[index].symbol,
             address: state.tokens[index].address,
             priceUsd: state.tokens[index].priceUsd,
-            tokenInfo: state.wallet.tokens.find(t => t.tokenInfo.address === state.tokens[index].address),
             logo: state.tokens[index].logo,
             slippage: state.tokens[index].slippage,
             amount: deposit ? state.swap.depositAmount : state.swap.outputs[index]?.amount ?? '0',
-            wallet: state.wallet
+            chain: state.connect.chainId
         }
     });
+    const { state } = useToken(address, SWAP_ADDRESS);
     const decimals = useDecimals(address);
+
     const [modal, setModal] = React.useState<boolean>(false);
     const [slippageModal, setSlippageModal] = React.useState<boolean>(false);
+
     const dispatch = useAppDispatch();
+
+    const isApproved = React.useCallback(async () => {
+        const token: any = new web3.eth.Contract(erc20, address);
+        const allowance: string = await token.methods.allowance(account, SWAP_ADDRESS).call().catch(() => '0');
+        const decimals: number = await token.methods.decimals().call().catch(() => 18);
+        
+        return web3.utils.toBN(allowance) >= toBaseUnit(amount, decimals, BN);
+    }, [account, address, amount]);
 
     React.useEffect(() => {
         dispatch(updateItem({
@@ -49,18 +66,15 @@ const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
             logo,
             index
         }))
-    }, [name, symbol, address, priceUsd, logo, tokenInfo, slippage, amount, index, percent, dispatch, decimals])
-
-    React.useEffect(() => {
-        dispatch(updateDecimals({address, decimals}));
-    }, [decimals, address, dispatch]);
+    }, [name, symbol, address, priceUsd, logo, slippage, amount, index, percent, dispatch, decimals])
 
     React.useEffect(() => {
         async function get() {
             dispatch(await getTokenInfo({token: address, index}));
+            dispatch(await getTokenBalance({token: address, index}));
         }
         if (address !== '') {
-            Promise.resolve(async () => await get ());
+            Promise.resolve(get());
         }
     }, [address, index, dispatch]);
 
@@ -71,6 +85,14 @@ const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
     React.useEffect(() => {
         dispatch(updateDepositAmount({index, depositAmount: input}))
     }, [input, dispatch, index]);
+
+    React.useEffect(() => {
+        if (address !== '' && Number(amount) > 0) {
+            setTimeout(async () => {
+                setEnabled(await isApproved());
+            }, 1000);
+        }
+    }, [address, amount, isApproved]);
 
     async function update(newName: string, newSymbol: string, newAddress: string) {
         setModal(false);
@@ -89,18 +111,13 @@ const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
 
     async function approve() {
         try {
-            dispatch(await approveContract({token: address, amount: input}));
-            dispatch(await getWalletData());            
+            dispatch(await approveContract({token: address, amount: input})).then(async () => {
+                setEnabled(await isApproved());
+            });     
         }
         catch (e) {
             console.log(e);
-
-            await dispatch(getWalletData());
         }
-    }
-
-    function isApproved() {
-        return deposit ? Number(cleanString(wallet.tokens.find((tok: any) => tok.tokenInfo.address === address)?.allowance ?? '0', decimals)) >= Number(input) : true;
     }
 
     return (
@@ -114,8 +131,8 @@ const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
                     </div>
                 </div>
                 <div className="token-amount">
-                    <span onClick={() => deposit && setInput(cleanString((tokenInfo?.rawBalance ?? '0'), decimals))}>
-                        {`Balance: ${Number(Number(cleanString((tokenInfo?.rawBalance ?? '0'), decimals)).toFixed(4)).toLocaleString()} ${symbol && symbol.toUpperCase()}`}
+                    <span onClick={() => deposit && setInput(cleanString(state.balance, decimals))}>
+                        {`Balance: ${Number(Number(cleanString(state.balance, decimals)).toFixed(4)).toLocaleString()} ${symbol && symbol.toUpperCase()}`}
                     </span>
                     <input className="token-input"
                         value={deposit ? input : Number(Number(cleanString(amount, decimals)).toFixed(5)).toLocaleString()}
@@ -127,7 +144,7 @@ const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
                 {`Slippage: ${slippage === 0 ? `Auto` : `${slippage}%`}`}
             </div>
             <div className="token-warning">
-                {address !== '' && <span>Validate {symbol.toUpperCase()}: <a href={`https://etherscan.io/token/${address}`} target="_blank noreferrer">
+                {address !== '' && !checkIsBase(address) && <span>Validate {symbol.toUpperCase()}: <a href={`${NetworkExplorers[Number(chain)]}/token/${address}`} target="_blank noreferrer">
                     {address}
                 </a></span>}
             </div>
@@ -142,9 +159,9 @@ const Token: React.FC<ITokenProps> = ({ index, deposit = false }) => {
                 </div>
             </div>}
         </div>
-        {deposit && !isApproved() &&
+        {deposit && !enabled &&
             <button className="submit-button" style={{width: '100%'}} onClick={async () => await approve()}
-                disabled={Number(input) === 0 || Number(input) > Number(cleanString(tokenInfo?.rawBalance ?? '0', tokenInfo?.tokenInfo.decimals ?? 18))}>
+                disabled={Number(input) === 0 || Number(input) > Number(cleanString(state.balance, decimals))}>
                 {`Approve ${symbol.toUpperCase()}`}
             </button>
         }

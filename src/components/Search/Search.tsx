@@ -1,6 +1,9 @@
 import React from "react";
 import { ExternalLink } from "react-feather";
+import { NetworkExplorers } from "../../data/networks";
 import { searchToken } from "../../data/searchToken";
+import { useAppSelector } from "../../hooks/hooks";
+import { RootState } from "../../store";
 import "./search.css";
 
 interface ISearchProps {
@@ -13,19 +16,23 @@ const Search: React.FC<ISearchProps> = ({ update, eth }) => {
     const [loading, setLoading] = React.useState<boolean>(false);
     const [options, setOptions] = React.useState<any>([]);
 
+    const chain: number = useAppSelector((state: RootState) => state.connect.chainId);
+
     React.useEffect(() => {
-        if (input !== '' && input.length > 2) {
-            setLoading(true);
-            setTimeout(async () => {
-            await searchToken(input, eth).then((res: any) => {
-                setOptions(res);
-                setLoading(false);
-                }).catch((e: Error) => {
-                    console.log(e.message);
+        setTimeout(() => {
+            if (input !== '' && input.length > 1) {
+                setLoading(true);
+                setTimeout(async () => {
+                await searchToken(input, eth).then((res: any) => {
+                    setOptions(res);
                     setLoading(false);
-                });
-            }, 500);
-        }
+                    }).catch((e: Error) => {
+                        console.log(e.message);
+                        setLoading(false);
+                    });
+                }, 1250);
+            }
+        });
     }, [input, eth]);
 
     return (
@@ -44,7 +51,7 @@ const Search: React.FC<ISearchProps> = ({ update, eth }) => {
                                 </div>
                             </div>
                             <div className="token-list-item-link">
-                                <a href={`https://etherscan.io/token/${item.address}`} target="_blank noreferrer"><ExternalLink size="24" /></a>
+                                <a href={`${NetworkExplorers[Number(chain)]}/token/${item.address}`} target="_blank noreferrer"><ExternalLink size="24" /></a>
                             </div>
                         </div>
                     ))

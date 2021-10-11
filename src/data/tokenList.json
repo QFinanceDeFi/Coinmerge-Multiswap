@@ -46,33 +46,6 @@
       }
     },
     {
-      "id": "1000-florida",
-      "symbol": "realtoken-s-1000-florida-ave-akron-oh",
-      "name": "RealT Token - 1000 Florida Ave, Akron, OH 44314",
-      "platforms": {
-        "ethereum": "0x1eb16ec378f0ce8f81449120629f52ba28961d47",
-        "xdai": "0x1eb16ec378f0ce8f81449120629f52ba28961d47"
-      }
-    },
-    {
-      "id": "10024-10028-appoline",
-      "symbol": "realtoken-s-10024-10028-appoline-st-detroit-mi",
-      "name": "RealT Token -10024-10028 Appoline St, Detroit, MI 48227",
-      "platforms": {
-        "ethereum": "0xb5d30c28f87acf675ed5b9f343e5fff39ec9942c",
-        "xdai": "0xb5d30c28f87acf675ed5b9f343e5fff39ec9942c"
-      }
-    },
-    {
-      "id": "10084-grayton",
-      "symbol": "realtoken-s-10084-grayton-st-detroit-mi",
-      "name": "RealT Token - 10084 Grayton St, Detroit, MI 48224",
-      "platforms": {
-        "ethereum": "0x92161385c9de8798ad5fb01c0be99ffcbc84dfd8",
-        "xdai": "0x92161385c9de8798ad5fb01c0be99ffcbc84dfd8"
-      }
-    },
-    {
       "id": "100x-coin",
       "symbol": "100x",
       "name": "100xCoin",
@@ -12524,7 +12497,8 @@
       "symbol": "cmerge",
       "name": "CoinMerge",
       "platforms": {
-        "ethereum": "0x1190074795dad0e61b61270de48e108427f8f817"
+        "ethereum": "0x1190074795dad0e61b61270de48e108427f8f817",
+        "binance-smart-chain": "0x8d3e3a57c5f140b5f9feb0d43d37a347ee01c851"
       }
     },
     {
@@ -35112,7 +35086,6 @@
       "name": "Polygon",
       "platforms": {
         "ethereum": "0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0",
-        "polygon-pos": "0x0000000000000000000000000000000000001010",
         "harmony-shard-0": "0x301259f392b551ca8c592c9f676fcd2f9a0a84c5"
       }
     },

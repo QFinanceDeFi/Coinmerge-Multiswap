@@ -1,8 +1,7 @@
 import React from 'react';
 import './App.css';
 import detectEthereumProvider from '@metamask/detect-provider';
-import { web3 } from './data/base';
-import WalletConnectProvider from '@walletconnect/web3-provider';
+import { setProvider, web3 } from './data/base';
 import { useAppDispatch, useAppSelector } from './hooks/hooks';
 import { changeAccount, changeChain, makeConnection, reset } from './state/connect/connect';
 import { getWalletData } from './state/wallet/wallet';
@@ -15,13 +14,17 @@ import Controls from './components/Controls/Controls';
 import { addItem, removeItem } from './state/tokens/tokens';
 import Token from './components/Token/Token';
 import Modal from './components/Modal/Modal';
+import { Networks } from './data/networks';
 
 const App: React.FC = () => {
   const [selected, setSelected] = React.useState<number>(1);
+  const [network, setNetwork] = React.useState<string>('Ethereum');
   const [modal, setModal] = React.useState<boolean>(false);
-  const { tokens } = useAppSelector(state => {
+  const { tokens, connected, chain } = useAppSelector(state => {
     return {
-      tokens: state.tokens
+      tokens: state.tokens,
+      connected: state.connect.connected,
+      chain: state.connect.chainId
     }
   });
   const width = useWindowWidth(50);
@@ -31,112 +34,81 @@ const App: React.FC = () => {
     setModal(true)
   }, []);
 
-  const subscribeProvider = React.useCallback(async (provider: any, service: 'injected' | 'walletconnect') => {
-    provider.on("connect", async () => {
+  const connectWallet = React.useCallback(async (service: 'injected' | 'walletconnect') => {
+    try {
+      await setProvider(service);
+      const accounts: string[] = await web3.eth.getAccounts();
+      dispatch(makeConnection({
+        connected: true,
+        address: accounts[0],
+        chainId: Number(await web3.eth.getChainId())
+      }));
       localStorage.setItem('walletprovider', service);
       dispatch(await getWalletData());
-    });
-
-    provider.on("disconnect", () => {
-        dispatch(
-          makeConnection({
-            connected: false,
-            address: "",
-            chainId: 0,
-            networkId: 0,
-          })
-        );
-
-        localStorage.removeItem('walletprovider');
-      }
-    );
-
-    provider.on("accountsChanged", async (accounts: string[]) => {
-      if (accounts.length === 0) {
-        return dispatch(
-          makeConnection({
-            connected: false,
-            address: "",
-            chainId: 0,
-            networkId: 0,
-          })
-        );
-      }
-      dispatch(changeAccount(accounts[0]));
-      dispatch(await getWalletData());
-    });
-
-    provider.on("chainChanged", async (chainId: number) => {
-      dispatch(changeChain(chainId));
-      dispatch(await getWalletData());
-    });
+    }
+    catch (e) {
+      console.log(e);
+      dispatch(makeConnection({
+        connected: false,
+        address: '',
+        chainId: 0
+      }));
+    }
   }, [dispatch]);
 
-    const connectWallet = React.useCallback(async (service: "injected" | "walletconnect"): Promise<void> => {
-    try {
-      if (service === "injected") {
+  React.useEffect(() => {
+    async function start() {
+      const walletprovider: string | null = localStorage.getItem('walletprovider');
+      if (walletprovider === 'injected' || walletprovider === 'walletconnect') {
+        await connectWallet(walletprovider);
+      } else {
         const provider: any = await detectEthereumProvider();
-
-        if (provider) {
-          // await provider.enable().catch((e: any) => { throw Error (e)});
-          await subscribeProvider(provider, service);
-          web3.setWriteProvider(provider);
-        } else {
-          alert("You need a Web3 wallet installed such as Metamask.");
-          return;
-        }
-      } else if (service === "walletconnect") {
-        const provider: any = new WalletConnectProvider({
-          rpc: {
-            1: `https://${process.env.REACT_APP_ALCHEMY}`,
-          },
-        });
-
-        await provider.enable();
-        await subscribeProvider(provider, service);
-
-        web3.setWriteProvider(provider);
-      }
-
-      const accounts: string[] = await web3.eth.getAccounts();
-      const networkId: number = await web3.eth.net.getId();
-      const chainId: number = await web3.eth.getChainId();
-
-      dispatch(
-        makeConnection({
-          connected: true,
-          address: accounts[0],
-          chainId,
-          networkId,
-        })
-      );
-
-      localStorage.setItem('walletprovider', service);
-
-      dispatch(await getWalletData());
-      
-      return;
-
-    } catch {
-      dispatch(
-        makeConnection({
-          connected: false,
-          address: "",
-          chainId: 0,
-          networkId: 0,
-        })
-      );
-
-      return;
+        dispatch(changeChain(provider?.chainId ?? 1));
+      }   
     }
-  }, [dispatch, subscribeProvider]);
+
+    Promise.resolve(start());
+
+  }, [connectWallet, dispatch]);
 
   React.useEffect(() => {
-    const wallet: string | null = localStorage.getItem('walletprovider');
-    if (wallet === "injected" || wallet === "walletconnect") {
-      Promise.resolve(connectWallet(wallet));
+    const str: string = JSON.parse(Networks[Number(chain) ?? 0]).name;
+    setNetwork(str);
+  }, [chain])
+
+  React.useEffect(() => {
+    async function subscribe() {
+      const provider: any = await detectEthereumProvider();
+      if (!provider) return;
+      provider.on("connect", async () => {
+      });
+  
+      provider.on("disconnect", async () => {
+          localStorage.removeItem('walletprovider');
+          dispatch(reset());
+          dispatch(await getWalletData());
+        }
+      );
+  
+      provider.on("accountsChanged", async (accounts: string[]) => {
+        if (accounts.length === 0) {
+          localStorage.removeItem('walletprovider');
+          window.location.reload();
+        } else {
+          dispatch((changeAccount(accounts[0])));
+          dispatch(await getWalletData());          
+        }
+      });
+  
+      provider.on("chainChanged", async (chainId: number) => {
+        dispatch(changeChain(Number(chainId)));
+        window.location.reload();
+      });
     }
-  }, [connectWallet])
+    
+    Promise.resolve(subscribe());
+
+  }, [connected, dispatch])
 
   function add() {
     dispatch(addItem());
@@ -155,6 +127,7 @@ const App: React.FC = () => {
         {selected === 1 &&
         <>
         <h1>Swap One For Multiple</h1>
+        <h3>{`Network: ${network}`}</h3>
         <Deposit />
         <Controls add={add} remove={remove} length={tokens.length} />
         {tokens.map((item: any, index: number) => (
@@ -164,6 +137,7 @@ const App: React.FC = () => {
         {selected === 2 &&
         <>
         <h1>Swap Multiple to ETH</h1>
+        <h3>{`Network: ${network}`}</h3>
         <Controls add={add} remove={remove} length={tokens.length} liq={true} />
         {tokens.map((item: any, index: number) => (
             <Token key={index} index={index} deposit={true} />

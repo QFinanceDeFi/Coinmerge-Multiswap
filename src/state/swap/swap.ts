@@ -4,6 +4,7 @@ import BN from "bn.js";
 import { swapContract, SWAP_ADDRESS, web3 } from "../../data/base";
 import { toBaseUnit } from "../../data/utils";
 import { getTokenOutput } from "../../data/calls";
+import { NetworkImages } from "../../data/networks";
 const ierc20 = require('../../data/IERC20.json');
 
 interface IOutputs {
@@ -49,31 +50,50 @@ export const getSwapData: any = createAsyncThunk(
                 address: "ETH",
                 symbol: "ETH",
                 name: "Ethereum",
-                logo: "https://upload.wikimedia.org/wikipedia/commons/6/6f/Ethereum-icon-purple.svg"
+                logo: NetworkImages[1]
             };
         }
-        else {
-            const tok: any = state.wallet.tokens.find((t: any) => t.tokenInfo.address === args.token);
-            if (!tok) {
-                return {
-                    ...initialState,
-                    address: args.token,
-                    symbol: args.symbol,
-                    name: args.name,
-                    allowance: '0',
-                    logo: args.logo
-                };
+        else if (args.token === "BNB") {
+            return {
+                ...state.swap,
+                address: "BNB",
+                symbol: "BNB",
+                name: "Binance Coin",
+                logo: NetworkImages[56]
             }
+        }
+        else if (args.token === "MATIC") {
+            return {
+                ...state.swap,
+                address: "MATIC",
+                symbol: "MATIC",
+                name: "Polygon",
+                logo: NetworkImages[137]
+            }
+        }
+        else if (args.token === "AVAX") {
+            return {
+                ...state.swap,
+                address: "AVAX",
+                symbol: "AVAX",
+                name: "Avalanche",
+                logo: NetworkImages[43114]
+            }
+        }
+        else {
+            
             const erc20: any = new web3.eth.Contract(ierc20, args.token);
             const accounts: string[] = await web3.eth.getAccounts();
             const allowance = await erc20.methods.allowance(accounts[0], SWAP_ADDRESS).call().catch(() => { return '0' });
+            const balance: string = await erc20.methods.balanceOf(accounts[0]).call().catch(() => { return '0' });
+
             return {
                 ...state.swap,
                 address: args.token,
                 allowance,
-                balance: tok.balance,
-                symbol: tok.tokenInfo.symbol,
-                name: tok.tokenInfo.name,
+                balance,
+                symbol: args.symbol,
+                name: args.name,
                 logo: args.logo
             };
         }
@@ -106,7 +126,7 @@ export const getOutputs: any = createAsyncThunk('swap/outputs', async (args: any
 
         const swap: any = swapContract();
 
-        if (args.base !== "ETH") {
+        if (args.base !== "ETH" && args.base !== 'AVAX' && args.base !== 'MATIC' && args.base !== 'BNB') {
             const erc = new web3.eth.Contract(ierc20, args.base);
             const details: any = state.wallet.tokens.find((t: any) => t.tokenInfo.address === args.base);
             let decimals: number = 0;

@@ -5,11 +5,15 @@ import Modal from "../Modal/Modal";
 import { Check, X } from "react-feather";
 import ClipLoader from "react-spinners/ClipLoader";
 import "./controls.css";
-import { cleanString } from "../../data/utils";
+import { checkIsBase, cleanString, toBaseUnit } from "../../data/utils";
 import { getLiquidationOutputs, getOutputs } from "../../state/swap/swap";
 import { getWalletData } from "../../state/wallet/wallet";
 import { approveContract, clearTx, liquidateForETH, makeSwap } from "../../state/tx/tx";
-import { web3 } from "../../data/base";
+import { SWAP_ADDRESS, web3 } from "../../data/base";
+import BN from "bn.js";
+import { NetworkExplorers } from "../../data/networks";
+
+const erc20 = require('../../data/IERC20.json');
 
 interface IControlProps {
     remove: Function;
@@ -21,62 +25,38 @@ interface IControlProps {
 
 const Controls: React.FC<IControlProps> = ({ remove, add, length, liq = false }) => {
     const [modal, setModal] = React.useState<boolean>(false);
-    const [enabledLiq, setEnabledLiq] = React.useState<boolean>(false);
     const [enabled, setEnabled] = React.useState<boolean>(false);
-    const { tokens, outputs, percent, depositAmount, base, wallet, tx } = useAppSelector(state => {
+    const { account, tokens, outputs, percent, depositAmount, base, wallet, tx, chain } = useAppSelector(state => {
         return {
+            account: state.connect.address,
             tokens: state.tokens,
             outputs: state.swap.outputs,
             percent: state.tokens.reduce((acc: number, item: any) => acc + item.percent, 0),
             depositAmount: state.swap.depositAmount,
             base: state.swap.address,
             wallet: state.wallet,
-            tx: state.tx
+            tx: state.tx,
+            chain: state.connect.chainId
         }
     });
 
     const dispatch = useAppDispatch();
 
     React.useEffect(() => {
-        function isApproved() {
-            const tokenData: any = wallet.tokens.find((tok: any) => tok.tokenInfo.address === base);
-            if (!tokenData) return false;
-            return base !== "ETH" ? Number(cleanString(tokenData.allowance, Number(tokenData.tokenInfo.decimals))) >= Number(depositAmount) : true;
+        async function isApproved() {
+            const token: any = new web3.eth.Contract(erc20, base);
+            const allowance: string = await token.methods.allowance(account, SWAP_ADDRESS).call().catch(() => '0');
+            const decimals: number = await token.methods.decimals().call().catch(() => 18);
+            
+            return web3.utils.toBN(allowance) >= toBaseUnit(depositAmount, decimals, BN);
         }
         if (percent === 100 && Number(depositAmount) > 0 && tokens.filter((t: any) => t.percent === 0).length === 0) {
             setTimeout(async () => {
                 dispatch(await getOutputs({amount: depositAmount.toString(), base, portfolio: tokens}));
-                setEnabled(isApproved());
+                !checkIsBase(base) && setEnabled(await isApproved());
             }, 1000)
         }
-    }, [depositAmount, percent, tokens, base, wallet, dispatch]);
-
-    React.useEffect(() => {
-        if (liq && tokens[0].address !== "") {
-            let notMet: string[] = [];
-            notMet = tokens.reduce((acc: any, item: any) => {
-                const details: any = wallet.tokens.find((t: any) => web3.utils.toChecksumAddress(t.tokenInfo.address) === web3.utils.toChecksumAddress(item.address));
-                if (details !== undefined) {
-                    if (item.depositAmount === '' || Number(item.depositAmount) === 0
-                        || Number(item.depositAmount) > Number(cleanString(details.rawBalance, Number(details.tokenInfo.decimals)))
-                        || Number(item.depositAmount) > Number(cleanString(details.allowance, Number(details.tokenInfo.decimals)))) {
-                            acc.push(item.address);
-                            return acc;
-                        }
-                    else {
-                        return acc;
-                    }
-                } else {
-                    return acc;
-                }
-            }, []);
-            if (notMet.length === 0) {
-                setEnabledLiq(true);
-            } else {
-                setEnabledLiq(false);
-            }
-        }
-    }, [wallet, tokens, liq]);
+    }, [depositAmount, percent, tokens, base, account, wallet, dispatch]);
 
     async function processTx() {
         setModal(false);
@@ -100,20 +80,20 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, liq = false })
         <>
         <div className="controls">
             <div className="submit-buttons">
-                {!liq && !enabled && base !== "ETH" &&
+                {!liq && !enabled && !checkIsBase(base) &&
                 <button className="submit-button" onClick={async () => await approve()}
                     disabled={percent !== 100 || Number(depositAmount) === 0 || outputs.filter(o => o.address === '' || Number(o.amount) > 0) === []}>
                         Approve
                     </button>
                 }
-                {!liq && (enabled || base === "ETH") &&
+                {!liq && (enabled || checkIsBase(base)) &&
                 <button className="submit-button" onClick={async () => { dispatch(await getOutputs({base, amount: depositAmount, portfolio: tokens})); setModal(true)}}
                     disabled={percent !== 100 || Number(depositAmount) === 0 || outputs.filter(o => o.address === '' || Number(o.amount) > 0) === []}>
                     Swap
                 </button>}
                 {liq &&
                     <button className="submit-button"
-                        disabled={!enabledLiq}
+                        disabled={tokens.filter((t: any) => Number(t.depositAmount ?? 0) === 0).length > 0}
                         onClick={async () => { await checkLiqOutputs(); setModal(true) }}>
                         Swap
                     </button>
@@ -177,7 +157,7 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, liq = false })
             </div>
             <div className="pending-tx-hash">
                 {tx.status === 'success' &&
-                    <a href={`https://etherscan.io/tx/${tx.hash}`} target="_blank noreferrer" className="pending-tx-hash-a">
+                    <a href={`${NetworkExplorers[Number(chain)]}/tx/${tx.hash}`} target="_blank noreferrer" className="pending-tx-hash-a">
                         {tx.hash && tx.hash !== '' && `${tx.hash.slice(0, 5)}...${tx.hash.slice(-5)}`}
                     </a>
                 }

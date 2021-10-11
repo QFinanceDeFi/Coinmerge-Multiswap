@@ -6,6 +6,8 @@ import "./wallet.css";
 import useScrollHeight from "../../hooks/useScrollHeight";
 import { ChevronDown, ChevronUp } from "react-feather";
 import { clearWallet } from "../../state/wallet/wallet";
+import { asDollar, cleanString } from "../../data/utils";
+import { NetworkExplorers, NetworkImages, Networks, NetworkSymbols } from "../../data/networks";
 
 interface IWalletProps {
     connect: Function
@@ -14,16 +16,25 @@ interface IWalletProps {
 const Wallet: React.FC<IWalletProps> = ({ connect }) => {
     const [open, setOpen] = React.useState<boolean>(false);
     const [modal, setModal] = React.useState<boolean>(false);
-    const { priceUsd, address, connected, balance } = useAppSelector(state => {
+    const [network, setNetwork] = React.useState<string>('Ethereum');
+    const { priceUsd, address, connected, chainId, balance } = useAppSelector(state => {
         return {
-            priceUsd: state.wallet.ethPrice,
+            priceUsd: state.wallet.basePrice,
             address: state.connect.address,
             connected: state.connect.connected,
-            balance: state.wallet.ethBalance
+            chainId: state.connect.chainId,
+            balance: state.wallet.baseBalance
         }
     })
     const dispatch = useAppDispatch();
     const height = useScrollHeight(50);
+
+    React.useEffect(() => {
+        if (chainId) {
+            const str: string = JSON.parse(Networks[chainId ?? 0]).name;
+            setNetwork(str);            
+        }
+    }, [chainId]);
 
     return (
         <div className="floating-wallet-ct" style={{display: height === 0 ? 'block' : 'none'}}>
@@ -34,13 +45,19 @@ const Wallet: React.FC<IWalletProps> = ({ connect }) => {
             <div className="floating-wallet">
                 <div className="floating-wallet-top">
                 {connected ?
-                    <a href={`https://etherscan.io/address/${address}`} target="_blank noreferrer">
+                    (network !== 'Unsupported' ?
+                    <a href={`${NetworkExplorers[Number(chainId)]}/address/${address}`} target="_blank noreferrer">
                         {`${address?.slice(0, 6) ?? ''}...${address?.slice(-5) ?? ''}`}
                     </a>
                     :
+                    <span style={{color: 'red'}}>Unsupported Network</span>)
+                    :
+                    (network !== 'Unsupported' ?
                     <span onClick={() => setModal(!modal)}>
                         Connect
                     </span>
+                    :
+                    <span style={{color: 'lightred', fontSize: '10px'}}>Unsupported Network</span>)
                 }
                     <div className="floating-wallet-indicator" style={{background: connected ? 'green' : 'red'}}></div>
                 </div>
@@ -48,16 +65,16 @@ const Wallet: React.FC<IWalletProps> = ({ connect }) => {
                     <div className="floating-wallet-row">
                         <div></div>
                         <div className="floating-wallet-balance">
-                            <span>{`${balance.toLocaleString()} ETH`}</span>
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Ethereum_logo_2014.svg/1257px-Ethereum_logo_2014.svg.png" alt="ETH logo" />
+                            <span>{`${Number(cleanString(balance, 18)).toFixed(3)} ${NetworkSymbols[Number(chainId)]}`}</span>
+                            <img src={NetworkImages[Number(chainId)]} alt="Coin logo" />
                         </div>
                     </div>
                 <div className="floating-wallet-balance-usd">
-                    <span>{`$${(Number(balance) * Number(priceUsd)).toLocaleString()} USD`}</span>
+                    <span>{`${(asDollar(Number(cleanString(balance, 18)) * Number(priceUsd)))} USD`}</span>
                 </div>
                 <div className="floating-wallet-row">
-                    <span onClick={() => setModal(true)} className="floating-wallet-link">
-                        {connected ? 'Disconnect' : 'Connect'}
+                    <span onClick={() => network !== 'Unsupported' ? setModal(true) : null} className="floating-wallet-link">
+                        {network !== 'Unsupported' ? (connected ? 'Disconnect' : 'Connect') : 'Unsupported network'}
                     </span>
                 </div>
             </div>

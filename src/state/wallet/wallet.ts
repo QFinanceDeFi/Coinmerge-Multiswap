@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { SWAP_ADDRESS, web3 } from "../../data/base";
+import { web3 } from "../../data/base";
 import type { RootState } from "../../store";
 
 interface ITokensState {
@@ -13,66 +13,53 @@ interface ITokensState {
 
 interface IWalletState {
     tokens: ITokensState[];
-    ethPrice: number;
-    ethBalance: number;
+    basePrice: number;
+    baseBalance: string;
     status?: 'pending' | 'success' | 'failed' | 'standby';
 }
 
 const initialState: IWalletState = {
     tokens: [],
-    ethPrice: 0,
-    ethBalance: 0,
+    basePrice: 0,
+    baseBalance: '0',
     status: 'standby'
 };
 
-export const getWalletData: any = createAsyncThunk('wallet/data', async (): Promise<IWalletState> => {
+enum coingeckoIds {
+    'ethereum' = 1,
+    'binancecoin' = 56,
+    'matic-network' = 137,
+    'avalanche-2' = 43114
+}
+
+export const getWalletData: any = createAsyncThunk('wallet/data', async (args, { getState }): Promise<IWalletState> => {
     try {
+        const state: any = getState();
+        const url: string = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum,avalanche-2,matic-network,binancecoin&vs_currencies=usd';
         const accounts: string[] = await web3.eth.getAccounts().catch(() => { return [] });
         if (accounts && accounts.length > 0) {
-            const userTokens: IWalletState = await fetch(`https://api.ethplorer.io/getAddressInfo/${accounts[0]}?apiKey=${process.env.REACT_APP_ETHPLORER}`)
-                .then((item: any) => item.json()).then(async (json: any) => {
-                    const reducer = async (arr: any, item: any) => {
-                        const allowance: string = await web3.alchemy.getTokenAllowance({
-                            contract: item.tokenInfo.address,
-                            owner: accounts[0],
-                            spender: SWAP_ADDRESS}).catch((e: any) => {
-                                console.log(e);
-                                return '0';
-                            });
 
-                        const newItem: object = {
-                            ...item,
-                            allowance
-                        }
+            const priceUsd: number = await fetch(url).then((res: any) => res.json().then((json: any) => {
+                return json[coingeckoIds[Number(state.connect.chainId)]].usd;
+            })).catch(() => { return 0 });
 
-                        const newList = Promise.resolve(arr).then((res: any) => {
-                            res.push(newItem);
-                            return res;
-                        })
+            const balance: string = await web3.eth.getBalance(accounts[0]);
 
-                        return newList;
-                    }
-
-                    const newList: any = await json.tokens?.reduce(reducer, Promise.all([])) ?? [];
-
-                    return {
-                        tokens: newList,
-                        ethPrice: json.ETH.price.rate,
-                        ethBalance: json.ETH.balance,
-                        status: 'success'
-                    };
-                });
-
-            return userTokens;            
+            return {
+                tokens: [],
+                basePrice: priceUsd,
+                baseBalance: balance,
+                status: 'success'
+            }
         } else {
-            const priceUsd: number = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd`).then((res: any) => res.json().then((json: any) => {
-                return json.ethereum.usd;
+            const priceUsd: number = await fetch(url).then((res: any) => res.json().then((json: any) => {
+                return json[coingeckoIds[Number(state.connect.chainId)]].usd;
             })).catch(() => { return 0 });
 
             return {
                 tokens: [],
-                ethPrice: priceUsd,
-                ethBalance: 0,
+                basePrice: priceUsd,
+                baseBalance: '0',
                 status: 'success'
             }
         }
@@ -89,15 +76,15 @@ export const walletSlice = createSlice({
     name: 'wallet',
     initialState,
     reducers: {
-        setETHBalance: (state: IWalletState, action: PayloadAction<number>) => {
-            state.ethBalance = action.payload;
+        setBaseBalance: (state: IWalletState, action: PayloadAction<string>) => {
+            state.baseBalance = action.payload;
         },
-        setETHPrice: (state: IWalletState, action: PayloadAction<number>) => {
-            state.ethPrice = action.payload;
+        setBasePrice: (state: IWalletState, action: PayloadAction<number>) => {
+            state.basePrice = action.payload;
         },
         clearWallet: (state: IWalletState) => {
             state.tokens = [];
-            state.ethBalance = 0;
+            state.baseBalance = '0';
             state.status = 'standby';
         }
     },
@@ -107,8 +94,8 @@ export const walletSlice = createSlice({
         },
         [getWalletData.fulfilled]: (state: IWalletState, action: PayloadAction<IWalletState>) => {
             state.tokens = action.payload.tokens;
-            state.ethBalance = action.payload.ethBalance;
-            state.ethPrice = action.payload.ethPrice;
+            state.baseBalance = action.payload.baseBalance;
+            state.basePrice = action.payload.basePrice;
             state.status = 'success';
         },
         [getWalletData.rejected]: (state: IWalletState) => {
@@ -117,7 +104,7 @@ export const walletSlice = createSlice({
     }
 });
 
-export const { setETHBalance, setETHPrice, clearWallet } = walletSlice.actions;
+export const { setBaseBalance, setBasePrice, clearWallet } = walletSlice.actions;
 
 export const selectWallet = (state: RootState) => state.wallet;
 

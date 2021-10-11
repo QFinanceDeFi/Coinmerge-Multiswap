@@ -2,6 +2,15 @@ function isString(s: any) {
     return (typeof s === 'string' || s instanceof String)
   }
 
+export function checkIsBase(sym: string): boolean {
+  const str = sym ? sym.toLowerCase() : '';
+  if (str === "eth" || str === "avax" || str === "bnb" || str === "matic") {
+      return true;
+  } else {
+      return false;
+  }
+}
+
 export function cleanString(str: string, decimals: number) {
   try {
     if (!str || Number(str) === 0 || isNaN(Number(str))) return '0';
@@ -73,3 +82,9 @@ export function toBaseUnit(value: string, decimals: number, BN: any) {
   
     return new BN(wei.toString(10), 10);
   }
+
+export function asDollar(amount: number | string): string {
+  const strAmount: string = Number(amount).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  
+  return strAmount;
+}

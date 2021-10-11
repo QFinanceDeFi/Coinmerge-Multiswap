@@ -4,20 +4,25 @@ import "./deposit.css";
 import { getSwapData, updateDepositAmount } from "../../state/swap/swap";
 import Modal from "../Modal/Modal";
 import Search from "../Search/Search";
-import { cleanString } from "../../data/utils";
+import { checkIsBase, cleanString } from "../../data/utils";
+import { SWAP_ADDRESS, web3 } from "../../data/base";
+import useToken from "../../hooks/useToken";
+import useDecimals from "../../hooks/useDecimals";
+import usePrice from "../../hooks/usePrice";
 
 const Deposit: React.FC = () => {
-    const [input, setInput] = React.useState<string>('');
+    const [input, setInput] = React.useState<string>('0');
     const [modal, setModal] = React.useState<boolean>(false);
-    const { balance, decimals, priceUsd, swap } = useAppSelector(state => {
-        const data: any = state.wallet.tokens.find((t: any) => t.tokenInfo.address === state.swap.address);
+    const { balance, price, swap } = useAppSelector(state => {
         return {
-            balance: state.swap.symbol === "ETH" ? state.wallet.ethBalance : data?.rawBalance ?? '0',
-            decimals: state.swap.symbol === "ETH" ? 18 : data?.tokenInfo.decimals ?? 18,
-            priceUsd: state.swap.symbol === "ETH" ? state.wallet.ethPrice : data?.tokenInfo.price?.rate ?? 0,
+            balance: state.wallet.baseBalance,
+            price: state.wallet.basePrice,
             swap: state.swap
         }
     });
+    const { state } = useToken(swap.address, SWAP_ADDRESS);
+    const { priceUsd } = usePrice(swap.address);
+    const decimals: number = useDecimals(swap.address);
     const dispatch = useAppDispatch();
 
     React.useEffect(() => {
@@ -41,18 +46,18 @@ const Deposit: React.FC = () => {
                     </div>
                 </div>
                 <div className="deposit-amount">
-                    <span onClick={() => setInput(swap.symbol === "ETH" ? balance : cleanString(balance, decimals))}
+                    <span onClick={() => setInput(checkIsBase(swap.symbol) ? web3.utils.fromWei(balance, 'ether') : cleanString(state.balance, decimals))}
                         style={{cursor: 'pointer'}}>
-                        {`Max ~${swap.symbol === "ETH" ? balance.toFixed(4) : cleanString(balance, decimals)} ${swap.symbol.toUpperCase()}`}
+                        {`Max ~${checkIsBase(swap.symbol) ? web3.utils.fromWei(balance, 'ether') : cleanString(state.balance, decimals)} ${swap.symbol.toUpperCase()}`}
                     </span>
                     <input className="deposit-input" type="number" value={input} style={{fontWeight: input === '' ? 300 : 600}}
                         onChange={(e: any) => setInput(e.target.value)} placeholder='Enter amount...' autoFocus />
-                    <span>{`Value: ~$${(Number(input) * priceUsd).toFixed(2).toLocaleString()} USD`}</span>
+                    <span>{`Value: ~$${(Number(input) * (checkIsBase(swap.address) ? price : priceUsd)).toFixed(2).toLocaleString()} USD`}</span>
                 </div>
                 {modal &&
                     <Modal open={modal} close={() => setModal(false)}>
                         <h3 style={{margin: '4px 0', fontWeight: 500}}>Select Token</h3>
-                        <Search update={update} eth={true} />
+                        <Search update={update} eth={!checkIsBase(swap.address)} />
                     </Modal>
                 }
             </div>
