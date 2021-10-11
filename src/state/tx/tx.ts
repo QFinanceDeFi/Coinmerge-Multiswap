@@ -22,6 +22,16 @@ const initialState: ITxState = {
     hash: ''
 }
 
+function getRefAddr(id: number): string {
+    switch (id) {
+        case (1): return '0x8d3e3a57c5f140b5f9feb0d43d37a347ee01c851';
+        case (56): return '0x8d3e3a57c5f140b5f9feb0d43d37a347ee01c851';
+        case (137): return '0x9649B0EF94b312341378343E87572592F584E756';
+        case (43114): return '0x9649B0EF94b312341378343E87572592F584E756';
+        default: return '0x9649B0EF94b312341378343E87572592F584E756';
+    }
+}
+
 export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio: any, expected: any, amount: string, base: string}, { getState, dispatch }): Promise<any> => {
     try {
         const tokens: string[] = [];
@@ -35,6 +45,7 @@ export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio
         });
 
         const from: string[] = await web3.eth.getAccounts();
+        const chain: number = await web3.eth.getChainId();
 
         let send: any = 0;
 
@@ -55,7 +66,7 @@ export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio
                     tokens,
                     percent,
                     outputs,
-                    SWAP_ADDRESS,
+                    getRefAddr(chain),
                     args.base,
                     send
                 ).encodeABI();
@@ -64,7 +75,7 @@ export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio
                     tokens,
                     percent,
                     outputs,
-                    SWAP_ADDRESS
+                    getRefAddr(chain)
                 ).encodeABI();
             }
         }
@@ -78,7 +89,6 @@ export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio
 
         const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
         txParams.gas = gas;
-        const chain: number = await web3.eth.getChainId();
 
         if (Number(chain) === 1) {
             const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;})
@@ -114,6 +124,7 @@ export const liquidateForETH: any = createAsyncThunk('tx/liquidate', async (args
         }));
 
         const from: string[] = await web3.eth.getAccounts();
+        const chain: number = await web3.eth.getChainId();
 
         const txParams: any = {
             to: SWAP_ADDRESS,
@@ -123,13 +134,12 @@ export const liquidateForETH: any = createAsyncThunk('tx/liquidate', async (args
                 tokens,
                 inputs,
                 expected,
-                SWAP_ADDRESS
+                getRefAddr(chain)
             ).encodeABI()
         }
 
         const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
         txParams.gas = gas;
-        const chain: number = await web3.eth.getChainId();
 
         if (Number(chain) === 1) {
             const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;})
