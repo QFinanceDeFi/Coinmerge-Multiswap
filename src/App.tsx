@@ -51,7 +51,7 @@ const App: React.FC = () => {
       dispatch(makeConnection({
         connected: false,
         address: '',
-        chainId: 0
+        chainId: 1
       }));
     }
   }, [dispatch]);
@@ -62,9 +62,9 @@ const App: React.FC = () => {
       if (walletprovider === 'injected' || walletprovider === 'walletconnect') {
         await connectWallet(walletprovider);
       } else {
-        const provider: any = await detectEthereumProvider();
-        dispatch(changeChain(provider?.chainId ?? 1));
-      }   
+        const chain: number = await web3.eth.getChainId();
+        dispatch(changeChain(chain));
+      }
     }
 
     Promise.resolve(start());
