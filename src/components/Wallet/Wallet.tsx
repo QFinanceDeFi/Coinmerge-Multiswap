@@ -53,7 +53,7 @@ const Wallet: React.FC<IWalletProps> = ({ connect }) => {
                     <span style={{color: 'red'}}>Unsupported Network</span>)
                     :
                     (network !== 'Unsupported' ?
-                    <span onClick={() => setModal(!modal)}>
+                    <span onClick={() => setModal(!modal)} style={{cursor: 'pointer'}}>
                         Connect
                     </span>
                     :
@@ -65,8 +65,8 @@ const Wallet: React.FC<IWalletProps> = ({ connect }) => {
                     <div className="floating-wallet-row">
                         <div></div>
                         <div className="floating-wallet-balance">
-                            <span>{`${Number(cleanString(balance, 18)).toFixed(3)} ${NetworkSymbols[Number(chainId)]}`}</span>
-                            <img src={NetworkImages[Number(chainId)]} alt="Coin logo" />
+                            <span>{`${Number(cleanString(balance, 18)).toFixed(3)} ${NetworkSymbols[Number(chainId)] ?? 'ETH'}`}</span>
+                            <img src={NetworkImages[Number(chainId)] ?? NetworkImages[1]} alt="Coin logo" />
                         </div>
                     </div>
                 <div className="floating-wallet-balance-usd">
