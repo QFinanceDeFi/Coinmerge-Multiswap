@@ -5,7 +5,6 @@ import { checkIsBase, toBaseUnit } from "../../data/utils";
 import BN from "bn.js"
 import { getDecimals } from "../../data/calls";
 import { getWalletData } from "../wallet/wallet";
-import detectEthereumProvider from "@metamask/detect-provider";
 import { clearSwap } from "../swap/swap";
 import { clearTokens } from "../tokens/tokens";
 
@@ -77,12 +76,12 @@ export const makeSwap: any = createAsyncThunk('tx/swap', async (args: {portfolio
             data: data()
         }
 
-        const provider: any = await detectEthereumProvider();
+        const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
+        txParams.gas = gas;
+        const chain: number = await web3.eth.getChainId();
 
-        if (Number(provider.chainId) === 1) {
-            const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
+        if (Number(chain) === 1) {
             const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;})
-            txParams.gas = gas;
             txParams.maxFeePerGas = (Number(fee) * 1.25).toFixed(0);
             txParams.maxPriorityFeePerGas = web3.utils.fromWei('1500000000000000000', 'gwei');            
         }
@@ -128,12 +127,12 @@ export const liquidateForETH: any = createAsyncThunk('tx/liquidate', async (args
             ).encodeABI()
         }
 
-        const provider: any = await detectEthereumProvider();
+        const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
+        txParams.gas = gas;
+        const chain: number = await web3.eth.getChainId();
 
-        if (Number(provider.chainId) === 1) {
-            const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
+        if (Number(chain) === 1) {
             const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;})
-            txParams.gas = gas;
             txParams.maxFeePerGas = (Number(fee) * 1.1).toFixed(0);
             txParams.maxPriorityFeePerGas = web3.utils.fromWei('1500000000000000000', 'gwei');            
         }
@@ -167,12 +166,12 @@ export const approveContract: any = createAsyncThunk('tx/approve', async (args: 
         }
 
         const gas: any = await web3.eth.estimateGas(txParams).catch((e: Error) => { throw e; });
+        txParams.gas = gas;
         const fee: any = await web3.eth.getGasPrice().catch((e: Error) => { throw e;});
 
-        const provider: any = await detectEthereumProvider();
+        const chain: number = await web3.eth.getChainId();
 
-        if (Number(provider.chainId) === 1) {
-            txParams.gas = gas;
+        if (Number(chain) === 1) {
             txParams.maxFeePerGas = (Number(fee) * 1.25).toFixed(0);
             txParams.maxPriorityFeePerGas = web3.utils.fromWei('1500000000000000000', 'gwei');
         }

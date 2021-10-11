@@ -48,12 +48,15 @@ const Controls: React.FC<IControlProps> = ({ remove, add, length, liq = false })
             const allowance: string = await token.methods.allowance(account, SWAP_ADDRESS).call().catch(() => '0');
             const decimals: number = await token.methods.decimals().call().catch(() => 18);
             
-            return web3.utils.toBN(allowance) >= toBaseUnit(depositAmount, decimals, BN);
+            return toBaseUnit(depositAmount, decimals, BN).lte(web3.utils.toBN(allowance));
         }
+
         if (percent === 100 && Number(depositAmount) > 0 && tokens.filter((t: any) => t.percent === 0).length === 0) {
             setTimeout(async () => {
                 dispatch(await getOutputs({amount: depositAmount.toString(), base, portfolio: tokens}));
-                !checkIsBase(base) && setEnabled(await isApproved());
+                if (!checkIsBase(base)) {
+                    setEnabled(await isApproved());
+                }
             }, 1000)
         }
     }, [depositAmount, percent, tokens, base, account, wallet, dispatch]);
