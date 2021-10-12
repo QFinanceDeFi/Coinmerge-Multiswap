@@ -21,6 +21,7 @@ export const setProvider = async (service: 'injected' | 'walletconnect') => {
         {
             await provider.enable();
             web3 = createAlchemyWeb3(getEndpoint(Number(provider.chainId), false));
+            localStorage.setItem('walletprovider', service);
         }
         else
         {
@@ -38,36 +39,12 @@ export const setProvider = async (service: 'injected' | 'walletconnect') => {
             }
         });
 
-        provider.enable();
-
-        web3 = createAlchemyWeb3(getEndpoint(Number(provider.chainId)));
+        await provider.enable();
+        web3 = createAlchemyWeb3(getEndpoint(provider.chainId, true));
         web3.setWriteProvider(provider);
+        localStorage.setItem('walletprovider', service);
     }
-
-    localStorage.setItem('walletprovider', service);
 }
-
-export const subscribeProvider = async (provider: WalletConnectProvider, service: 'injected' | 'walletconnect') => {
-    provider.on("connect", async () => {
-      localStorage.setItem('walletprovider', service);
-    });
-
-    provider.on("disconnect", () => {
-        localStorage.removeItem('walletprovider');
-      }
-    );
-
-    provider.on("accountsChanged", async (accounts: string[]) => {
-      if (accounts.length === 0) {
-        localStorage.removeItem('walletprovider');
-      }
-      console.log(await web3.eth.getChainId());
-    });
-
-    provider.on("chainChanged", async (chainId: number) => {
-      console.log(chainId);
-    });
-  };
 
 export function getEndpoint(chainId: number, https = false): string {
     const chainName: any = JSON.parse(Networks[chainId])?.name ?? 'ethereum';
