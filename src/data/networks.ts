@@ -19,7 +19,7 @@
 
 export enum Networks {
     '{"name": "Unsupported"}' = 0,
-    '{"name": "Ethereum", "id": "ethereum", "cmaddr": "0x1190074795dad0e61b61270de48e108427f8f817"}' = 1,
+    '{"name": "Ethereum", "id": "ethereum", "cmaddr": "0x8e0c9e7a4b9285a2c671942ece944175a52874a7"}' = 1,
     '{"name": "BSC", "id": "binance-smart-chain", "cmaddr": "0x8d3e3a57c5f140b5f9feb0d43d37a347ee01c851"}' = 56,
     '{"name": "Polygon", "id": "polygon-pos", "cmaddr": "0x9649B0EF94b312341378343E87572592F584E756"}' = 137,
     '{"name": "Avalanche", "id": "avalanche", "cmaddr": "0x9649B0EF94b312341378343E87572592F584E756"}' = 43114
