@@ -22,7 +22,7 @@ const Navigation: React.FC<INavigationProps> = ({ selected, update }) => {
     return (
         <div className="navigation">
             <NavigationItem label="Swap for Multiple" active={selected === 1} onClick={() => handleClick(1)} />
-            <NavigationItem label="Swap for ETH" active={selected === 2} onClick={() => handleClick(2)} />
+            <NavigationItem label="Sell Non-Tax Tokens" active={selected === 2} onClick={() => handleClick(2)} />
         </div>
     )
 }
