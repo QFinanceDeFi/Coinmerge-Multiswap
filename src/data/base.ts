@@ -25,7 +25,7 @@ export const setProvider = async (service: 'injected' | 'walletconnect') => {
         }
         else
         {
-            alert('Install a Web3 wallet such as Metamask.')
+            alert(`Install a Web3 wallet such as Metamask. If you're on mobile, use WalletConnect.`)
         }
     }
     else if (service === 'walletconnect')
