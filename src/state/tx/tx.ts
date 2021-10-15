@@ -24,7 +24,7 @@ const initialState: ITxState = {
 
 function getRefAddr(id: number): string {
     switch (id) {
-        case (1): return '0x8d3e3a57c5f140b5f9feb0d43d37a347ee01c851';
+        case (1): return '0x8e0c9e7a4b9285a2c671942ece944175a52874a7';
         case (56): return '0x8d3e3a57c5f140b5f9feb0d43d37a347ee01c851';
         case (137): return '0x9649B0EF94b312341378343E87572592F584E756';
         case (43114): return '0x9649B0EF94b312341378343E87572592F584E756';
@@ -166,7 +166,7 @@ export const approveContract: any = createAsyncThunk('tx/approve', async (args: 
         const from: string[] = await web3.eth.getAccounts();
 
         const contract = new web3.eth.Contract(ierc20, args.token);
-        const decimals: number = await contract.methods.decimals()?.call();
+        const decimals: number = await contract.methods.decimals()?.call().catch(() => 18);
         const data = contract.methods.approve(SWAP_ADDRESS, toBaseUnit(args.amount, decimals, BN)).encodeABI();
         const txParams: any = {
             to: args.token,
