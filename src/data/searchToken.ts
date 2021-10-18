@@ -20,7 +20,7 @@ export const searchToken = async (symbol: string, eth = true): Promise<ITokenOut
         chain = network.id;
     }
     const getTokens = async () => {
-        if (symbol.startsWith('0x') && symbol.length === 64) {
+        if (symbol.startsWith('0x') && symbol.length > 32) {
             const token: any = new web3.eth.Contract(erc20, symbol);
             const name: string = await token.methods.name().call().catch(() => '');
             const ticker: string = await token.methods.symbol().call().catch(() => '');
